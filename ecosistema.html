@@ -1,0 +1,508 @@
+<!-- Chosen Palette: Calm Harmony with Functional Accents (Slate #F8FAFC/#1E293B, Blue #3B82F6, Amber #F59E0B, Purple #8B5CF6, Emerald #10B981) -->
+<!-- Application Structure Plan: The SPA uses a tabbed dashboard structure to break down the comprehensive report into digestible, interactive segments: 1. Contexto & Problema (Sets the stage), 2. Ecosistema de Apps (Interactive exploration of user profiles), 3. Flujo Operativo (Step-by-step interactive workflow), 4. Arquitectura y Datos (Visual charts of technical needs). This approach prevents cognitive overload, allowing stakeholders to explore the "Why" (Problem), "Who/What" (Apps), "How" (Workflow), and "Technical Core" (Data) at their own pace. -->
+<!-- Visualization & Content Choices: 
+- Problem Statements -> Goal: Inform -> Interactive Cards -> Justification: Flips or reveals solution on hover/click to immediately show value. NO SVG.
+- App Ecosystem -> Goal: Organize/Inform -> Dynamic HTML Panel -> Justification: Allows user to switch between Notificador/Gestor/Fixer to see specific features without scrolling a long document. NO SVG.
+- Workflow -> Goal: Organize/Change -> Interactive HTML/CSS Timeline -> Justification: Maps the 7 steps clearly; clicking a step shows detailed actions/actors. NO SVG/MERMAID.
+- Data Requirements -> Goal: Compare/Composition -> Chart.js Donut -> Justification: Shows the varied data points composing a single incident payload. NO SVG.
+- Tech Objectives -> Goal: Compare -> Chart.js Bar -> Justification: Highlights the relative importance/effort of offline sync, real-time, and scalability. NO SVG. 
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definición del Problema: Ecosistema de Incidencias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #F8FAFC; color: #1E293B; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn.active { background-color: #ffffff; border-bottom: 2px solid #3B82F6; color: #3B82F6; font-weight: 600; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .app-btn { transition: all 0.2s; }
+        .app-btn.active { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: currentColor; }
+        .step-item { transition: all 0.2s; cursor: pointer; }
+        .step-item.active { background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding-left: 1.5rem; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-white shadow-sm z-10 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">⚙️</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">Ecosistema de Incidencias</h1>
+                    <p class="text-xs text-slate-500 font-medium">Documento Interactivo de Definición del Problema</p>
+                </div>
+            </div>
+            <nav class="flex space-x-2 md:space-x-4 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                <button onclick="openTab('tab-contexto')" id="btn-tab-contexto" class="tab-btn active px-4 py-2 text-sm text-slate-600 rounded-t-lg whitespace-nowrap">Contexto y Problema</button>
+                <button onclick="openTab('tab-ecosistema')" id="btn-tab-ecosistema" class="tab-btn px-4 py-2 text-sm text-slate-600 rounded-t-lg whitespace-nowrap">Apps y Perfiles</button>
+                <button onclick="openTab('tab-flujo')" id="btn-tab-flujo" class="tab-btn px-4 py-2 text-sm text-slate-600 rounded-t-lg whitespace-nowrap">Flujo de Trabajo</button>
+                <button onclick="openTab('tab-tecnologia')" id="btn-tab-tecnologia" class="tab-btn px-4 py-2 text-sm text-slate-600 rounded-t-lg whitespace-nowrap">Datos y Tecnología</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+
+            <div id="tab-contexto" class="tab-content fade-in block">
+                <div class="mb-8 max-w-4xl">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-3">El Desafío de la Gestión Fragmentada</h2>
+                    <p class="text-slate-600 text-lg leading-relaxed">
+                        Esta sección explora el contexto actual en entornos operativos complejos (oficinas, plantas, complejos). Aquí detallamos las deficiencias críticas derivadas de la falta de un canal centralizado de reporte, justificando la necesidad imperativa de una solución integral. Interactúa con las tarjetas para visualizar cómo nuestra propuesta resuelve cada problema.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden cursor-pointer" onclick="toggleSolution(this)">
+                        <div class="absolute inset-0 bg-emerald-50 translate-y-full group-[.show-solution]:translate-y-0 transition-transform duration-300 p-6 flex flex-col justify-center">
+                            <span class="text-2xl mb-2">✅</span>
+                            <h4 class="font-bold text-emerald-800 mb-2">Solución: Ruteo Automatizado</h4>
+                            <p class="text-sm text-emerald-700">El Gestor clasifica en segundos y asigna directamente o publica en una bolsa de trabajo, conectando al instante con el Fixer adecuado.</p>
+                        </div>
+                        <span class="text-3xl mb-4 block">⏱️</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Tiempos de respuesta lentos</h3>
+                        <p class="text-slate-600">La información tarda en llegar al ejecutor adecuado debido a canales de comunicación ineficientes o cuellos de botella manuales.</p>
+                        <p class="text-xs text-slate-400 mt-4 font-semibold uppercase tracking-wider">Haz clic para ver la solución</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden cursor-pointer" onclick="toggleSolution(this)">
+                        <div class="absolute inset-0 bg-emerald-50 translate-y-full group-[.show-solution]:translate-y-0 transition-transform duration-300 p-6 flex flex-col justify-center">
+                            <span class="text-2xl mb-2">✅</span>
+                            <h4 class="font-bold text-emerald-800 mb-2">Solución: Captura Multimedia Rica</h4>
+                            <p class="text-sm text-emerald-700">La App del Notificador exige fotos, audios o video corto, garantizando que el técnico llegue al sitio con el repuesto y la herramienta correcta.</p>
+                        </div>
+                        <span class="text-3xl mb-4 block">📸</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Falta de evidencia visual</h3>
+                        <p class="text-slate-600">Los reportes carecen de detalles técnicos, lo que obliga a los técnicos a realizar visitas de diagnóstico adicionales previas a la reparación.</p>
+                        <p class="text-xs text-slate-400 mt-4 font-semibold uppercase tracking-wider">Haz clic para ver la solución</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden cursor-pointer" onclick="toggleSolution(this)">
+                        <div class="absolute inset-0 bg-emerald-50 translate-y-full group-[.show-solution]:translate-y-0 transition-transform duration-300 p-6 flex flex-col justify-center">
+                            <span class="text-2xl mb-2">✅</span>
+                            <h4 class="font-bold text-emerald-800 mb-2">Solución: Triaje Centralizado</h4>
+                            <p class="text-sm text-emerald-700">El Panel del Gestor permite categorizar y asignar prioridades (Baja, Media, Alta, Crítica) basándose en el impacto operativo real.</p>
+                        </div>
+                        <span class="text-3xl mb-4 block">⚠️</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Desorden en la prioridad</h3>
+                        <p class="text-slate-600">No hay una jerarquía clara. Un foco fundido y una fuga de agua mayor pueden entrar a la misma cola sin distinción de criticidad.</p>
+                        <p class="text-xs text-slate-400 mt-4 font-semibold uppercase tracking-wider">Haz clic para ver la solución</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden cursor-pointer" onclick="toggleSolution(this)">
+                        <div class="absolute inset-0 bg-emerald-50 translate-y-full group-[.show-solution]:translate-y-0 transition-transform duration-300 p-6 flex flex-col justify-center">
+                            <span class="text-2xl mb-2">✅</span>
+                            <h4 class="font-bold text-emerald-800 mb-2">Solución: Trazabilidad y Tracking</h4>
+                            <p class="text-sm text-emerald-700">Historial de reportes en la app del Notificador con notificaciones en tiempo real ("Asignado", "En Proceso", "Resuelto").</p>
+                        </div>
+                        <span class="text-3xl mb-4 block">🌫️</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Opacidad en la resolución</h3>
+                        <p class="text-slate-600">El usuario (Detector) que reporta el problema queda a ciegas y no sabe el estado de su solicitud hasta que accidentalmente ve el problema resuelto.</p>
+                        <p class="text-xs text-slate-400 mt-4 font-semibold uppercase tracking-wider">Haz clic para ver la solución</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-ecosistema" class="tab-content hidden">
+                <div class="mb-8 max-w-4xl">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-3">Interfaces Especializadas por Rol</h2>
+                    <p class="text-slate-600 text-lg leading-relaxed">
+                        Para solucionar la fragmentación, proponemos un Ecosistema Digital compuesto por un Backend central y tres aplicaciones móviles dedicadas. Selecciona cada perfil a continuación para explorar su objetivo, funcionalidades clave y su rol dentro del engranaje del sistema.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-4 space-y-4">
+                        <button onclick="selectApp('notificador')" id="btn-app-notificador" class="app-btn active w-full text-left bg-white p-4 rounded-xl border-l-4 border-amber-500 shadow-sm flex items-center gap-4">
+                            <div class="bg-amber-100 p-3 rounded-lg text-amber-600 text-xl">📱</div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">App Notificador</h3>
+                                <p class="text-xs text-slate-500">Los Detectores</p>
+                            </div>
+                        </button>
+                        <button onclick="selectApp('gestor')" id="btn-app-gestor" class="app-btn w-full text-left bg-white p-4 rounded-xl border-l-4 border-purple-500 shadow-sm flex items-center gap-4">
+                            <div class="bg-purple-100 p-3 rounded-lg text-purple-600 text-xl">💻</div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">App Gestor</h3>
+                                <p class="text-xs text-slate-500">Los Recolectores</p>
+                            </div>
+                        </button>
+                        <button onclick="selectApp('fixer')" id="btn-app-fixer" class="app-btn w-full text-left bg-white p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm flex items-center gap-4">
+                            <div class="bg-emerald-100 p-3 rounded-lg text-emerald-600 text-xl">🔧</div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">App Fixer</h3>
+                                <p class="text-xs text-slate-500">Los Ejecutores</p>
+                            </div>
+                        </button>
+                        <div class="w-full text-left bg-slate-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm flex items-center gap-4 mt-8 opacity-80">
+                            <div class="bg-slate-700 p-3 rounded-lg text-blue-400 text-xl">☁️</div>
+                            <div>
+                                <h3 class="font-bold text-white">API REST Backend</h3>
+                                <p class="text-xs text-slate-300">Base de datos, Notificaciones y Archivos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8 bg-white rounded-2xl shadow-md border border-slate-200 p-6 md:p-10 min-h-[400px] flex flex-col">
+                        <div id="app-detail-notificador" class="app-detail fade-in block">
+                            <div class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm mb-4">Foco: Simplicidad y Rapidez</div>
+                            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Detectores de Incidencias</h2>
+                            <p class="text-slate-600 mb-8 border-b border-slate-100 pb-6">Su objetivo es capturar la incidencia en el momento exacto del hallazgo con el menor esfuerzo posible, proveyendo contexto rico para el equipo técnico.</p>
+                            
+                            <h4 class="font-bold text-slate-800 mb-4 uppercase tracking-wider text-sm">Funcionalidades Clave</h4>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-3">
+                                    <span class="text-amber-500 mt-1">📸</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Captura Multimedia</strong>
+                                        <span class="text-sm text-slate-600">Interfaz obligatoria para tomar fotos, grabar audio explicando la falla, video corto y redacción de texto descriptivo.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-amber-500 mt-1">📍</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Geolocalización / Origen</strong>
+                                        <span class="text-sm text-slate-600">Selección automática (GPS) o manual de la ubicación de la falla (ej. Piso 3, Oficina 202).</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-amber-500 mt-1">🔔</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Seguimiento Transparente</strong>
+                                        <span class="text-sm text-slate-600">Historial de reportes propios y recepción de notificaciones push de cambio de estado (ej. "Tu reporte ya fue asignado").</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div id="app-detail-gestor" class="app-detail hidden">
+                            <div class="inline-block bg-purple-100 text-purple-800 font-bold px-3 py-1 rounded-full text-sm mb-4">Foco: Control y Enrutamiento</div>
+                            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">El Cerebro Operativo</h2>
+                            <p class="text-slate-600 mb-8 border-b border-slate-100 pb-6">Es el panel de control central que decide el destino de cada ticket. Filtra el ruido y asigna eficientemente los recursos técnicos.</p>
+                            
+                            <h4 class="font-bold text-slate-800 mb-4 uppercase tracking-wider text-sm">Funcionalidades Clave</h4>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-3">
+                                    <span class="text-purple-500 mt-1">📥</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Bandeja de Entrada & Triaje</strong>
+                                        <span class="text-sm text-slate-600">Visualización en tiempo real. Etiquetado por tipo (Eléctrica, TI, etc.) y nivel de prioridad estratégico.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-purple-500 mt-1">🔀</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Modelos de Asignación Dual</strong>
+                                        <div class="text-sm text-slate-600 mt-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <div class="bg-slate-50 p-2 rounded border border-slate-200"><strong>1. Directa:</strong> Selección de un técnico específico basado en carga.</div>
+                                            <div class="bg-slate-50 p-2 rounded border border-slate-200"><strong>2. En Cola:</strong> Publicación en "bolsa de trabajo" común.</div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-purple-500 mt-1">🗺️</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Monitoreo Global</strong>
+                                        <span class="text-sm text-slate-600">Vista de mapa o lista para supervisar dónde están los técnicos y qué incidencias permanecen abiertas.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div id="app-detail-fixer" class="app-detail hidden">
+                            <div class="inline-block bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-sm mb-4">Foco: Productividad y Resolución</div>
+                            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Herramienta de Trabajo</h2>
+                            <p class="text-slate-600 mb-8 border-b border-slate-100 pb-6">Orientada 100% al trabajo de campo. Facilita la toma de tareas, la gestión del tiempo y la recolección de pruebas de finalización.</p>
+                            
+                            <h4 class="font-bold text-slate-800 mb-4 uppercase tracking-wider text-sm">Funcionalidades Clave</h4>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-3">
+                                    <span class="text-emerald-500 mt-1">📋</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Gestión de Tareas Flexible</strong>
+                                        <span class="text-sm text-slate-600">Permite aceptar tareas asignadas directamente por el Gestor o explorar la "Cola de Incidencias" para auto-asignarse trabajos cercanos.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-emerald-500 mt-1">▶️</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Control de Flujo de Trabajo</strong>
+                                        <span class="text-sm text-slate-600">Botones de estado en sitio: "Iniciar Trabajo", "En Pausa" (ej. por falta de repuestos) y "Finalizar".</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-emerald-500 mt-1">✅</span>
+                                    <div>
+                                        <strong class="block text-slate-800">Evidencia de Cierre</strong>
+                                        <span class="text-sm text-slate-600">Obligatoriedad estructural de subir una foto del problema resuelto y adjuntar una firma o comentario final antes de cerrar el ticket.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-flujo" class="tab-content hidden">
+                 <div class="mb-8 max-w-4xl">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-3">Ciclo de Vida de la Incidencia</h2>
+                    <p class="text-slate-600 text-lg leading-relaxed">
+                        Este apartado mapea la ruta que sigue un registro de incidencia, desde su nacimiento hasta su archivo. Selecciona cada paso de la línea de tiempo interactiva a la izquierda para revelar la acción específica y el actor responsable de ejecutarla, demostrando la coordinación del sistema.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="md:col-span-5 space-y-2 border-r border-slate-100 pr-4">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 ml-4">Secuencia Operativa</div>
+                        <div onclick="selectStep(1)" id="btn-step-1" class="step-item active px-4 py-3 rounded-r-lg font-medium text-slate-700">1. Detección inicial</div>
+                        <div onclick="selectStep(2)" id="btn-step-2" class="step-item px-4 py-3 rounded-r-lg font-medium text-slate-700">2. Alerta al sistema</div>
+                        <div onclick="selectStep(3)" id="btn-step-3" class="step-item px-4 py-3 rounded-r-lg font-medium text-slate-700">3. Triaje y validación</div>
+                        <div onclick="selectStep(4)" id="btn-step-4" class="step-item px-4 py-3 rounded-r-lg font-medium text-slate-700">4. Enrutamiento (Directo/Cola)</div>
+                        <div onclick="selectStep(5)" id="btn-step-5" class="step-item px-4 py-3 rounded-r-lg font-medium text-slate-700">5. Aceptación técnica</div>
+                        <div onclick="selectStep(6)" id="btn-step-6" class="step-item px-4 py-3 rounded-r-lg font-medium text-slate-700">6. Trabajo y evidencia</div>
+                        <div onclick="selectStep(7)" id="btn-step-7" class="step-item px-4 py-3 rounded-r-lg font-medium text-slate-700">7. Resolución y cierre</div>
+                    </div>
+
+                    <div class="md:col-span-7 flex items-center justify-center p-6 bg-slate-50 rounded-xl">
+                        <div id="step-details" class="text-center w-full fade-in">
+                            <div id="step-actor" class="inline-block bg-amber-200 text-amber-800 px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider mb-6">Actor: Notificador</div>
+                            <h3 id="step-title" class="text-2xl font-bold text-slate-800 mb-4">Detección de falla y carga de multimedia</h3>
+                            <p id="step-desc" class="text-slate-600 text-lg">El usuario en sitio observa el problema, abre la app, documenta con fotos/audio y envía el reporte geolocalizado.</p>
+                            
+                            <div class="mt-8 flex justify-center gap-2">
+                                <span class="text-sm font-semibold text-slate-500">Estado de la Incidencia:</span>
+                                <span id="step-status" class="text-sm font-bold text-amber-600 bg-amber-50 px-2 rounded border border-amber-200">Abierto</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-tecnologia" class="tab-content hidden">
+                <div class="mb-8 max-w-4xl">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-3">Requerimientos Técnicos y Estructura de Datos</h2>
+                    <p class="text-slate-600 text-lg leading-relaxed">
+                        Para soportar el Ecosistema y el Flujo Operativo, el sistema se fundamenta en una estructura de datos rica (la composición del ticket de incidencia) y debe cumplir con objetivos técnicos críticos innegociables para garantizar la disponibilidad en campo. Explora las gráficas para entender la anatomía técnica del proyecto.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">Anatomía de los Datos (El Ticket)</h3>
+                        <p class="text-sm text-slate-500 text-center mb-6">Elementos obligatorios que componen cada registro para asegurar que el sistema sea efectivo.</p>
+                        <div class="chart-container">
+                            <canvas id="dataChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-400 mt-4">Nota: La integridad de este payload evita la pérdida de información entre el Detector y el Ejecutor.</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">Prioridad de Objetivos Técnicos Críticos</h3>
+                            <p class="text-sm text-slate-500 text-center mb-6">Evaluación del nivel de impacto de los requerimientos de arquitectura del sistema.</p>
+                            <div class="chart-container" style="height: 280px;">
+                                <canvas id="techChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-6 space-y-3">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex gap-3 items-start">
+                                <span class="text-blue-500">📶</span>
+                                <div class="text-sm"><strong>Sincronización Offline:</strong> Capacidad vital de capturar datos sin internet (ej. sótanos) y subirlos al recuperar conexión.</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex gap-3 items-start">
+                                <span class="text-blue-500">⚡</span>
+                                <div class="text-sm"><strong>Notificaciones Real-Time:</strong> Uso de WebSockets o FCM para lograr la comunicación inmediata entre perfiles.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- Tab Navigation Logic ---
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('block', 'fade-in');
+                el.classList.add('hidden');
+            });
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            const target = document.getElementById(tabId);
+            target.classList.remove('hidden');
+            // Allow display block to apply before adding fade-in for animation re-trigger
+            setTimeout(() => target.classList.add('block', 'fade-in'), 10);
+            
+            document.getElementById('btn-' + tabId).classList.add('active');
+
+            // Render charts only when technology tab is opened to ensure correct sizing
+            if(tabId === 'tab-tecnologia' && !chartsRendered) {
+                renderCharts();
+                chartsRendered = true;
+            }
+        }
+
+        // --- Context/Problem Interactions ---
+        function toggleSolution(element) {
+            element.classList.toggle('show-solution');
+        }
+
+        // --- Ecosystem App Selection Logic ---
+        function selectApp(appId) {
+            document.querySelectorAll('.app-detail').forEach(el => {
+                el.classList.remove('block', 'fade-in');
+                el.classList.add('hidden');
+            });
+            document.querySelectorAll('.app-btn').forEach(el => {
+                el.classList.remove('active', 'border-current');
+            });
+
+            const target = document.getElementById('app-detail-' + appId);
+            target.classList.remove('hidden');
+            setTimeout(() => target.classList.add('block', 'fade-in'), 10);
+
+            const btn = document.getElementById('btn-app-' + appId);
+            btn.classList.add('active', 'border-current');
+        }
+
+        // --- Workflow Data & Logic ---
+        const workflowData = [
+            { actor: 'Notificador', actorClass: 'bg-amber-200 text-amber-800', title: 'Detección de falla y carga de multimedia', desc: 'El usuario captura fotos/audio de la falla, indica la ubicación y genera el reporte inicial en la aplicación.', status: 'Abierto', statusClass: 'text-amber-600 bg-amber-50 border-amber-200' },
+            { actor: 'Sistema/Backend', actorClass: 'bg-blue-200 text-blue-800', title: 'Notificación de nueva incidencia', desc: 'El servidor recibe el payload y emite alertas push inmediatas a los paneles de los Gestores activos.', status: 'Abierto', statusClass: 'text-amber-600 bg-amber-50 border-amber-200' },
+            { actor: 'Gestor', actorClass: 'bg-purple-200 text-purple-800', title: 'Clasificación y validación', desc: 'El Gestor revisa la evidencia, determina que es válida, etiqueta el tipo de falla y le asigna prioridad.', status: 'En Evaluación', statusClass: 'text-purple-600 bg-purple-50 border-purple-200' },
+            { actor: 'Gestor', actorClass: 'bg-purple-200 text-purple-800', title: 'Enrutamiento Estratégico', desc: 'Opción A: Asigna directamente a un técnico. Opción B: Lo publica en la lista de espera (cola) general.', status: 'Asignado / En Cola', statusClass: 'text-blue-600 bg-blue-50 border-blue-200' },
+            { actor: 'Fixer', actorClass: 'bg-emerald-200 text-emerald-800', title: 'Aceptación de la tarea', desc: 'El técnico acepta la asignación directa o "toma" la incidencia de la cola pública, asumiendo la responsabilidad.', status: 'Asignado', statusClass: 'text-blue-600 bg-blue-50 border-blue-200' },
+            { actor: 'Fixer', actorClass: 'bg-emerald-200 text-emerald-800', title: 'Ejecución y carga de evidencia', desc: 'El técnico llega al lugar, trabaja (cambiando estado a En Proceso) y al finalizar, sube fotos del arreglo.', status: 'En Proceso', statusClass: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
+            { actor: 'Sistema/Backend', actorClass: 'bg-blue-200 text-blue-800', title: 'Cierre y Notificación final', desc: 'Se registra el timestamp final, el ticket se cierra y se notifica la resolución al Notificador original.', status: 'Resuelto', statusClass: 'text-emerald-600 bg-emerald-50 border-emerald-200' }
+        ];
+
+        function selectStep(stepIndex) {
+            document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('btn-step-' + stepIndex).classList.add('active');
+
+            const data = workflowData[stepIndex - 1];
+            const detailsDiv = document.getElementById('step-details');
+            
+            // Retrigger animation
+            detailsDiv.classList.remove('fade-in');
+            void detailsDiv.offsetWidth; // Trigger reflow
+            detailsDiv.classList.add('fade-in');
+
+            document.getElementById('step-actor').className = `inline-block px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider mb-6 ${data.actorClass}`;
+            document.getElementById('step-actor').innerText = `Actor: ${data.actor}`;
+            document.getElementById('step-title').innerText = data.title;
+            document.getElementById('step-desc').innerText = data.desc;
+            
+            document.getElementById('step-status').className = `text-sm font-bold px-2 rounded border ${data.statusClass}`;
+            document.getElementById('step-status').innerText = data.status;
+        }
+
+        // --- Charts Implementation ---
+        let chartsRendered = false;
+
+        function wrapLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + words[i].length + 1 <= 16) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        const standardTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        function renderCharts() {
+            // Chart 1: Data Requirements (Donut)
+            const dataLabelsRaw = ['ID Único de Rastreo', 'Origen / Ubicación Física', 'Identidad de Usuarios', 'Multimedia (Fotos/Audio/Video)', 'Timestamps Exactos', 'Control de Estado'];
+            const dataLabelsWrapped = dataLabelsRaw.map(wrapLabel);
+            
+            const ctxData = document.getElementById('dataChart').getContext('2d');
+            new Chart(ctxData, {
+                type: 'doughnut',
+                data: {
+                    labels: dataLabelsWrapped,
+                    datasets: [{
+                        data: [1, 2, 2, 3, 1, 1], // Simulated weights of payload size/importance
+                        backgroundColor: ['#64748B', '#F59E0B', '#8B5CF6', '#3B82F6', '#10B981', '#EF4444'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'right', labels: { font: { family: 'Inter' } } },
+                        tooltip: standardTooltipConfig
+                    }
+                }
+            });
+
+            // Chart 2: Technical Objectives (Bar)
+            const techLabelsRaw = ['Sincronización Offline', 'Notificaciones en Tiempo Real', 'Escalabilidad del API y Media'];
+            const techLabelsWrapped = techLabelsRaw.map(wrapLabel);
+
+            const ctxTech = document.getElementById('techChart').getContext('2d');
+            new Chart(ctxTech, {
+                type: 'bar',
+                data: {
+                    labels: techLabelsWrapped,
+                    datasets: [{
+                        label: 'Nivel de Criticidad Operativa (%)',
+                        data: [100, 85, 90], // Highlighting offline sync as the most critical
+                        backgroundColor: ['#10B981', '#3B82F6', '#8B5CF6'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: '#F1F5F9' }, title: { display: true, text: 'Criticidad (%)' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: standardTooltipConfig
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

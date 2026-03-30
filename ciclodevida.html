@@ -1,0 +1,287 @@
+<!--
+Palette: Vibrant Professional (Blue #2563EB, Amber #F59E0B, Emerald #10B981, Rose #E11D48, Indigo #4F46E5, Slate #0F172A)
+Plan Summary: 
+1. Header & Intro: Set context for incident management.
+2. KPI Overview: Show simulated metrics based on the 6 states to inform.
+3. State Distribution: Donut chart showing volume across the 6 states (Abierta, En Cola, Asignada, En Proceso, Resuelta, Cancelada).
+4. Decision Flow: HTML/CSS based diagram outlining the Capture -> Triage -> Execution -> Closure process.
+5. SLA & Rules: Bar chart showing average times to highlight the 24h queue rule.
+Visualizations Justification: 
+- Big Numbers -> Inform -> Tailwind styled text -> Highlights key metrics. NO SVG.
+- Donut Chart -> Compare -> Chart.js -> Best for showing proportion of incidents in each of the 6 states. NO SVG.
+- Process Diagram -> Organize -> HTML/CSS Grid/Flexbox -> Maps the decision tree clearly without external tools. NO SVG.
+- Bar Chart -> Compare/Change -> Chart.js -> Compares SLA times across states, highlighting the 24h rule. NO SVG.
+Explicit Confirmation: NEITHER Mermaid JS NOR SVG were used anywhere in this output. All graphics are Canvas or HTML/CSS/Unicode.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infografía: Ciclo de Vida de Incidencias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F8FAFC; color: #0F172A; }
+        .chart-container { position: relative; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .flow-card { background: white; border: 2px solid #E2E8F0; border-radius: 0.5rem; padding: 1rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .flow-arrow { font-size: 1.5rem; color: #94A3B8; text-align: center; margin: 0.5rem 0; font-weight: bold; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        
+        <header class="text-center mb-12 bg-white p-8 rounded-2xl shadow-lg border-t-8 border-blue-600">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">⚙️ Ciclo de Vida de una Incidencia</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+                Una visión integral de cómo transita un reporte de falla desde su detección inicial hasta su resolución definitiva. Este modelo de máquina de estados garantiza trazabilidad, eficiencia y comunicación constante entre Detectores, Gestores y Fixers.
+            </p>
+        </header>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4 border-b-2 border-indigo-200 pb-2">📊 1. Visión General del Ecosistema</h2>
+            <p class="text-slate-600 mb-6">
+                El sistema categoriza cada reporte en uno de los seis estados principales para mantener el orden. A continuación, se ilustran métricas clave de salud operativa que este modelo permite monitorear en tiempo real.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow border-l-4 border-amber-500">
+                    <div class="text-sm font-bold text-slate-500 uppercase">Tiempo Prom. Triaje</div>
+                    <div class="text-3xl font-extrabold text-slate-800 mt-2">⏱️ 15 min</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow border-l-4 border-blue-500">
+                    <div class="text-sm font-bold text-slate-500 uppercase">Incidencias en Cola</div>
+                    <div class="text-3xl font-extrabold text-slate-800 mt-2">📋 12</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow border-l-4 border-emerald-500">
+                    <div class="text-sm font-bold text-slate-500 uppercase">Tasa de Resolución</div>
+                    <div class="text-3xl font-extrabold text-slate-800 mt-2">✅ 94%</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow border-l-4 border-rose-500">
+                    <div class="text-sm font-bold text-slate-500 uppercase">Alertas Críticas (>24h)</div>
+                    <div class="text-3xl font-extrabold text-rose-600 mt-2">🚨 2</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h3 class="text-xl font-bold text-center text-slate-700 mb-2">Distribución de Incidencias por Estado Principal</h3>
+                <p class="text-center text-sm text-slate-500 mb-6">Muestra la proporción de tickets activos e históricos clasificados en los 6 estados del flujo.</p>
+                <div class="chart-container">
+                    <canvas id="statesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4 border-b-2 border-indigo-200 pb-2">🛤️ 2. Flujo de Decisiones (State Machine)</h2>
+            <p class="text-slate-600 mb-8">
+                El siguiente diagrama ilustra la ruta crítica de un reporte. Cada actor (Notificador, Gestor, Fixer) tiene un rol específico que detona el cambio de estado, generando notificaciones Push en cada transición.
+            </p>
+
+            <div class="bg-slate-50 p-6 md:p-10 rounded-2xl shadow-inner border border-slate-200">
+                <div class="flex flex-col items-center">
+                    
+                    <div class="w-full max-w-md bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow">
+                        <span class="text-xs font-bold bg-indigo-100 text-indigo-800 px-2 py-1 rounded uppercase tracking-wider">Paso 1: Captura</span>
+                        <h4 class="font-bold text-lg mt-2 text-indigo-900">👤 Notificador crea reporte</h4>
+                        <div class="mt-2 text-sm font-bold text-white bg-amber-500 inline-block px-3 py-1 rounded-full">Estado: ABIERTA</div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <div class="w-full max-w-2xl bg-white border-2 border-blue-300 rounded-xl p-4 text-center shadow">
+                        <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded uppercase tracking-wider">Paso 2: Triaje</span>
+                        <h4 class="font-bold text-lg mt-2 text-blue-900">👨‍💻 Gestor evalúa la incidencia</h4>
+                        <p class="text-sm text-slate-600 mb-4">¿Es una incidencia válida?</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div class="bg-rose-50 p-3 rounded border border-rose-200">
+                                <p class="font-bold text-rose-700">NO</p>
+                                <p class="text-xs text-rose-600 mb-2">Reporte falso o duplicado</p>
+                                <div class="text-xs font-bold text-white bg-rose-500 inline-block px-2 py-1 rounded-full">Estado: CANCELADA</div>
+                            </div>
+                            <div class="bg-emerald-50 p-3 rounded border border-emerald-200 flex flex-col justify-between">
+                                <div>
+                                    <p class="font-bold text-emerald-700">SÍ</p>
+                                    <p class="text-xs text-emerald-600 mb-2">¿Hay un técnico específico libre?</p>
+                                </div>
+                                <div class="flex justify-center gap-2 mt-2">
+                                    <div class="bg-white p-2 text-xs rounded border border-emerald-300 w-1/2">
+                                        <p class="font-bold">SÍ</p>
+                                        <p>Asignación Directa</p>
+                                        <div class="mt-1 text-white bg-teal-500 inline-block px-2 py-1 rounded-full text-[10px] font-bold">ASIGNADA</div>
+                                    </div>
+                                    <div class="bg-white p-2 text-xs rounded border border-emerald-300 w-1/2">
+                                        <p class="font-bold">NO</p>
+                                        <p>Publicar en lista</p>
+                                        <div class="mt-1 text-white bg-blue-500 inline-block px-2 py-1 rounded-full text-[10px] font-bold">EN COLA</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <div class="w-full max-w-md bg-white border-2 border-teal-300 rounded-xl p-4 text-center shadow">
+                        <span class="text-xs font-bold bg-teal-100 text-teal-800 px-2 py-1 rounded uppercase tracking-wider">Paso 3: Ejecución</span>
+                        <h4 class="font-bold text-lg mt-2 text-teal-900">🔧 Fixer atiende el problema</h4>
+                        <p class="text-sm text-slate-600 mb-3">Si estaba EN COLA, el Fixer hace "Claim" (Pasa a ASIGNADA).</p>
+                        <p class="text-sm font-medium text-slate-700">El Fixer llega al sitio y da clic en "Iniciar"</p>
+                        <div class="mt-2 text-sm font-bold text-white bg-indigo-500 inline-block px-3 py-1 rounded-full">Estado: EN PROCESO</div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <div class="w-full max-w-md bg-white border-2 border-emerald-400 rounded-xl p-4 text-center shadow">
+                        <span class="text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-1 rounded uppercase tracking-wider">Paso 4: Cierre</span>
+                        <h4 class="font-bold text-lg mt-2 text-emerald-900">📝 Carga de Evidencia</h4>
+                        <p class="text-sm text-slate-600 mb-3">Fixer sube fotos/notas y hace clic en "Finalizar".</p>
+                        <div class="mt-2 text-sm font-bold text-white bg-emerald-600 inline-block px-3 py-1 rounded-full">Estado: RESUELTA</div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4 border-b-2 border-indigo-200 pb-2">📏 3. Reglas de Negocio y Control de Tiempos (SLA)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 col-span-1 md:col-span-1">
+                    <h3 class="font-bold text-indigo-800 mb-2">Límite de Carga de Trabajo</h3>
+                    <p class="text-sm text-slate-700">Un Fixer no puede tomar una incidencia de la cola si ya tiene <strong class="text-rose-600 text-lg">3</strong> en estado "En Proceso". Esto asegura calidad y evita cuellos de botella.</p>
+                </div>
+                <div class="bg-amber-50 p-5 rounded-xl border border-amber-100 col-span-1 md:col-span-1">
+                    <h3 class="font-bold text-amber-800 mb-2">Alerta Crítica de Cola</h3>
+                    <p class="text-sm text-slate-700">Si una incidencia permanece más de <strong class="text-rose-600 text-lg">24h</strong> en estado <strong>EN COLA</strong> sin ser reclamada, el sistema emite una alerta crítica al Gestor.</p>
+                </div>
+                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 col-span-1 md:col-span-1">
+                    <h3 class="font-bold text-blue-800 mb-2">Notificaciones Push</h3>
+                    <p class="text-sm text-slate-700">El Notificador recibe una alerta en tiempo real en <strong class="text-blue-600">cada cambio de estado</strong>, garantizando transparencia en la resolución de su solicitud.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                <h3 class="text-xl font-bold text-center text-slate-700 mb-2">Tiempos Promedio por Estado (Simulación SLA)</h3>
+                <p class="text-center text-sm text-slate-500 mb-6">Monitoreo de horas transcurridas en cada fase. La línea roja marca el límite de 24 horas para incidencias En Cola.</p>
+                <div class="chart-container">
+                    <canvas id="slaChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function wrapLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + words[i].length + 1 <= 16) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        const tooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        const statesLabelsRaw = ['Estado: ABIERTA', 'Estado: EN COLA', 'Estado: ASIGNADA', 'Estado: EN PROCESO', 'Estado: RESUELTA', 'Estado: CANCELADA'];
+        const statesLabelsWrapped = statesLabelsRaw.map(wrapLabel);
+
+        const ctxStates = document.getElementById('statesChart').getContext('2d');
+        new Chart(ctxStates, {
+            type: 'doughnut',
+            data: {
+                labels: statesLabelsWrapped,
+                datasets: [{
+                    data: [15, 10, 20, 25, 25, 5],
+                    backgroundColor: [
+                        '#F59E0B', 
+                        '#3B82F6', 
+                        '#14B8A6', 
+                        '#6366F1', 
+                        '#10B981', 
+                        '#EF4444'  
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: tooltipConfig
+                },
+                cutout: '60%'
+            }
+        });
+
+        const slaLabelsRaw = ['Tiempo en Triaje (Abierta)', 'Tiempo en Lista (En Cola)', 'Tiempo de Llegada (Asignada)', 'Tiempo de Trabajo (En Proceso)'];
+        const slaLabelsWrapped = slaLabelsRaw.map(wrapLabel);
+
+        const ctxSLA = document.getElementById('slaChart').getContext('2d');
+        new Chart(ctxSLA, {
+            type: 'bar',
+            data: {
+                labels: slaLabelsWrapped,
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Límite Crítico SLA (24h)',
+                        data: [24, 24, 24, 24],
+                        borderColor: '#EF4444',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Horas Promedio Transcurridas',
+                        data: [2, 18, 1.5, 4.5],
+                        backgroundColor: '#2563EB',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Horas' }
+                    }
+                },
+                plugins: {
+                    tooltip: tooltipConfig,
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
