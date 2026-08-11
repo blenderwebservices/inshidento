@@ -1,9 +1,11 @@
 import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import Features from './components/Features';
 import Workflow from './components/Workflow';
-import Architecture from './components/Architecture';
+import MultiTenantSection from './components/MultiTenantSection';
+import BillingSection from './components/BillingSection';
+import AIFeatures from './components/AIFeatures';
+import Features from './components/Features';
 import CTA from './components/CTA';
 import './index.css';
 
@@ -13,13 +15,23 @@ function App() {
       <Navbar />
       <main>
         <Hero />
-        <Features />
         <Workflow />
-        <Architecture />
+        <MultiTenantSection />
+        <BillingSection />
+        <AIFeatures />
+        <Features />
         <CTA />
       </main>
-      <footer className="container" style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-muted)', borderTop: '1px solid var(--glass-border)' }}>
-        <p>&copy; 2026 Inshidento AI Platform. Todos los derechos reservados.</p>
+      <footer className="footer-container">
+        <div className="container footer-content">
+          <div className="footer-brand">
+            <span className="footer-logo">Inshidento<span>.ai</span></span>
+            <p>Ecosistema Digital Multi-Tenant de Gestión de Incidencias e Infraestructura Empresarial.</p>
+          </div>
+          <div className="footer-copyright">
+            <p>&copy; 2026 Inshidento AI Platform. Todos los derechos reservados.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );

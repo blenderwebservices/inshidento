@@ -1,0 +1,50 @@
+.ai-section {
+  position: relative;
+}
+
+.section-badge.alt {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.12);
+}
+
+.ai-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.ai-card {
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+
+.ai-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.15);
+}
+
+.ai-icon-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(139, 92, 246, 0.15);
+  color: #c084fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.ai-card h3 {
+  font-size: 1.2rem;
+  color: #f8fafc;
+  margin-bottom: 0.75rem;
+}
+
+.ai-card p {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  line-height: 1.6;
+}

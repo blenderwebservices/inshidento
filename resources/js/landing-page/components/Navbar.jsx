@@ -1,30 +1,60 @@
-import React from 'react';
-import { Shield, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ShieldCheck, Menu, X, ArrowRight, Building2, Sparkles } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav className="navbar glass-card">
-      <div className="container nav-container">
-        <div className="logo">
-          <Shield className="logo-icon" />
-          <span className="logo-text">Inshidento</span>
-        </div>
-        
-        <div className={`nav-links ${isOpen ? 'open' : ''}`}>
-          <a href="#features" onClick={() => setIsOpen(false)}>Características</a>
-          <a href="#workflow" onClick={() => setIsOpen(false)}>Proceso</a>
-          <a href="#architecture" onClick={() => setIsOpen(false)}>Tecnología</a>
-          <button className="btn-primary">Empezar Ahora</button>
-        </div>
+    <header className={`navbar-header ${scrolled ? 'scrolled' : ''}`}>
+      <div className="container navbar-container">
+        <a href="#" className="navbar-logo">
+          <div className="logo-icon">
+            <ShieldCheck size={26} className="logo-svg" />
+          </div>
+          <div className="logo-text">
+            <span className="logo-title">Inshidento<span className="dot-primary">.ai</span></span>
+            <span className="logo-subtitle">Enterprise OS</span>
+          </div>
+        </a>
 
-        <button className="menu-toggle" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X /> : <Menu />}
-        </button>
+        <nav className={`navbar-links ${mobileMenuOpen ? 'active' : ''}`}>
+          <a href="#flujo" onClick={() => setMobileMenuOpen(false)}>Flujo End-to-End</a>
+          <a href="#empresas" onClick={() => setMobileMenuOpen(false)}>Empresas & Sucursales</a>
+          <a href="#fixers" onClick={() => setMobileMenuOpen(false)}>Fixers & Facturación</a>
+          <a href="#ia" onClick={() => setMobileMenuOpen(false)}>Inteligencia Artificial</a>
+          <a href="#beneficios" onClick={() => setMobileMenuOpen(false)}>Beneficios</a>
+        </nav>
+
+        <div className="navbar-actions">
+          <a href="/admin/login" className="btn-secondary nav-btn-login">
+            <Building2 size={16} /> Acceso Backend / Login
+          </a>
+          <a href="#cta" className="btn-primary nav-btn-demo">
+            <span>Solicitar Demo</span>
+            <ArrowRight size={16} />
+          </a>
+
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
 
