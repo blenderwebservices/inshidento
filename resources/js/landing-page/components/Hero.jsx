@@ -81,7 +81,7 @@ const Hero = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="hero-title"
             >
-              Gestiona Incidencias en <span className="gradient-text">Sucursales y Edificios</span> de Fin a Fin
+              Gestiona Incidencias en <span className="gradient-text">Sucursales y Edificios</span> de Extremo a Extremo
             </motion.h1>
 
             <motion.p 
