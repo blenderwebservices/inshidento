@@ -10,6 +10,20 @@ class Incident extends Model
 {
     use HasFactory, HasUuids;
 
+    // Mapa completo del Ciclo de Vida de 10 Pasos
+    public const LIFECYCLE_STEPS = [
+        1 => ['key' => 'registrada', 'name' => '1. Registro Inicial', 'role' => 'Notificador'],
+        2 => ['key' => 'proveedor_asignado', 'name' => '2. Asignación de Proveedor', 'role' => 'Gestor'],
+        3 => ['key' => 'diagnostico_cargado', 'name' => '3. Levantamiento y Diagnóstico', 'role' => 'Proveedor'],
+        4 => ['key' => 'cotizacion_propuesta', 'name' => '4. Propuesta Técnica/Económica', 'role' => 'Proveedor'],
+        5 => ['key' => 'cotizacion_validada', 'name' => '5. Validación de Presupuesto', 'role' => 'Waldo\'s / FM'],
+        6 => ['key' => 'oc_emitida', 'name' => '6. Emisión de Orden de Compra', 'role' => 'Sistema / Admin'],
+        7 => ['key' => 'en_ejecucion', 'name' => '7. Ejecución y Generadores', 'role' => 'Proveedor'],
+        8 => ['key' => 'entrega_validada', 'name' => '8. Validación de Entrega', 'role' => 'Waldo\'s / FM'],
+        9 => ['key' => 'proceso_administrativo', 'name' => '9. Proceso Admin y Facturación', 'role' => 'Finanzas / Admin'],
+        10 => ['key' => 'cerrada', 'name' => '10. Cierre de Ticket', 'role' => 'Sistema'],
+    ];
+
     protected $fillable = [
         'codigo_ticket',
         'branch_id',
@@ -25,6 +39,10 @@ class Incident extends Model
         'manager_id',
         'fixer_id',
         'billing_report_id',
+        'purchase_order_id',
+        'diagnostico_texto',
+        'propuesta_tecnica',
+        'documentos_fiscales',
         'costo_mano_obra',
         'costo_materiales',
         'fecha_resolucion',
@@ -34,6 +52,7 @@ class Incident extends Model
         'costo_mano_obra' => 'decimal:2',
         'costo_materiales' => 'decimal:2',
         'fecha_resolucion' => 'datetime',
+        'documentos_fiscales' => 'array',
     ];
 
     public function branch()
@@ -66,6 +85,11 @@ class Incident extends Model
         return $this->belongsTo(BillingReport::class);
     }
 
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');
+    }
+
     public function media()
     {
         return $this->hasMany(IncidentMedia::class);
@@ -74,6 +98,38 @@ class Incident extends Model
     public function logs()
     {
         return $this->hasMany(IncidentLog::class);
+    }
+
+    public function getCurrentStepNumber(): int
+    {
+        foreach (static::LIFECYCLE_STEPS as $stepNum => $stepData) {
+            if ($stepData['key'] === $this->estado) {
+                return $stepNum;
+            }
+        }
+        return 1;
+    }
+
+    public function canStartExecution(): bool
+    {
+        // La ejecución exige la existencia de una Orden de Compra aprobada/emitida con folio
+        if (!$this->purchase_order_id) {
+            return false;
+        }
+
+        $po = $this->purchaseOrder;
+        if (!$po) {
+            return false;
+        }
+
+        return in_array($po->estado, ['emitida', 'aprobada', 'en_ejecucion']);
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('id', $value)
+            ->orWhere('codigo_ticket', $value)
+            ->firstOrFail();
     }
 
     public static function generateTicketCode(): string

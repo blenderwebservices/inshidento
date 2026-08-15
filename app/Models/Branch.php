@@ -10,8 +10,22 @@ class Branch extends Model
 {
     use HasFactory, HasUuids;
 
+    public const ZONAS_GEOGRAFICAS = [
+        'Noreste',
+        'Bajío',
+        'Noroeste',
+        'Peninsular',
+        'Metro Norte',
+        'Metro Sur',
+        'Occidente',
+        'Sur',
+        'Norte',
+        'Centro',
+    ];
+
     protected $fillable = [
         'company_id',
+        'zona_geografica',
         'nombre',
         'codigo_sucursal',
         'direccion',
