@@ -63,6 +63,10 @@ class IncidentLifecycleService
      */
     public function generatePurchaseOrder(Incident $incident, User $issuer, array $items, ?string $notas = null): PurchaseOrder
     {
+        if ($incident->purchase_order_id && $incident->purchaseOrder) {
+            return $incident->purchaseOrder;
+        }
+
         return DB::transaction(function () use ($incident, $issuer, $items, $notas) {
             $subtotal = 0;
             foreach ($items as $item) {

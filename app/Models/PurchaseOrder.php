@@ -76,16 +76,18 @@ class PurchaseOrder extends Model
         $year = date('Y');
         $prefix = 'OC-INS-' . $year . '-';
 
-        $latestFolio = static::where('folio_interno', 'like', $prefix . '%')
-            ->orderByRaw('length(folio_interno) DESC, folio_interno DESC')
-            ->value('folio_interno');
+        $folios = static::where('folio_interno', 'like', $prefix . '%')->pluck('folio_interno');
 
-        $nextNumber = 1;
-        if ($latestFolio) {
-            $number = (int) substr($latestFolio, strlen($prefix));
-            $nextNumber = $number + 1;
+        $maxNumber = 0;
+        foreach ($folios as $folio) {
+            $numStr = str_replace($prefix, '', $folio);
+            $numVal = (int) preg_replace('/[^0-9]/', '', $numStr);
+            if ($numVal > $maxNumber) {
+                $maxNumber = $numVal;
+            }
         }
 
+        $nextNumber = $maxNumber + 1;
         $candidate = $prefix . str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
 
         while (static::where('folio_interno', $candidate)->exists()) {
