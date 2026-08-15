@@ -13,7 +13,6 @@ return new class extends Migration
         });
 
         Schema::table('incidents', function (Blueprint $table) {
-            $table->string('estado_temp')->default('registrada')->after('prioridad');
             $table->text('diagnostico_texto')->nullable()->after('ubicacion_especifica');
             $table->text('propuesta_tecnica')->nullable()->after('diagnostico_texto');
             $table->foreignUuid('purchase_order_id')->nullable()->constrained('purchase_orders')->onDelete('set null')->after('billing_report_id');
@@ -25,7 +24,7 @@ return new class extends Migration
     {
         Schema::table('incidents', function (Blueprint $table) {
             $table->dropForeign(['purchase_order_id']);
-            $table->dropColumn(['estado_temp', 'diagnostico_texto', 'propuesta_tecnica', 'purchase_order_id', 'documentos_fiscales']);
+            $table->dropColumn(['diagnostico_texto', 'propuesta_tecnica', 'purchase_order_id', 'documentos_fiscales']);
         });
 
         Schema::table('branches', function (Blueprint $table) {

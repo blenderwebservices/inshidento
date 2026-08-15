@@ -149,4 +149,47 @@ class IncidentLifecycleTest extends TestCase
         $responseByCode = $this->get(route('incidents.show', 'INC-CODE-99'));
         $responseByCode->assertStatus(200);
     }
+
+    public function test_advance_state_from_step_6_to_7_via_http_post(): void
+    {
+        $company = Company::create(['nombre' => 'Waldo\'s Step 6', 'rfc_tax_id' => 'WDM666666666']);
+        $branch = Branch::create(['company_id' => $company->id, 'nombre' => 'Sucursal Occidente 1', 'zona_geografica' => 'Occidente']);
+        $category = Category::create(['nombre' => 'TI']);
+        $user = User::create(['name' => 'Manager User', 'email' => 'mgr6@test.com', 'password' => 'password', 'rol' => 'manager']);
+
+        $incident = Incident::create([
+            'codigo_ticket' => 'INC-STEP6-01',
+            'branch_id' => $branch->id,
+            'titulo' => 'Falla de POS',
+            'descripcion' => 'Impresora térmica descompuesta',
+            'categoria_id' => $category->id,
+            'prioridad' => 'media',
+            'estado' => 'cotizacion_validada',
+            'notifier_id' => $user->id,
+            'fixer_id' => $user->id,
+        ]);
+
+        // Emitir OC
+        $items = [
+            [
+                'codigo_concepto' => 'TII-001',
+                'descripcion' => 'Punto de red',
+                'unidad_medida' => 'punto',
+                'cantidad' => 1,
+                'precio_unitario' => 650.00,
+            ]
+        ];
+
+        $po = $this->lifecycleService->generatePurchaseOrder($incident, $user, $items, 'Notas OC');
+        $this->assertEquals('oc_emitida', $incident->fresh()->estado);
+
+        // Realizar POST a /incidents/{incident}/advance para pasar a en_ejecucion
+        $response = $this->post(route('incidents.advance', $incident), [
+            'next_state' => 'en_ejecucion',
+            'comentario' => 'Iniciando trabajos en tienda',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('en_ejecucion', $incident->fresh()->estado);
+    }
 }

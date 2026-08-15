@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('descripcion');
             $table->foreignId('categoria_id')->constrained('categories')->onDelete('restrict');
             $table->enum('prioridad', ['baja', 'media', 'alta', 'critica'])->default('media');
-            $table->enum('estado', ['abierta', 'asignada', 'en_progreso', 'resuelta', 'cancelada'])->default('abierta');
+            $table->string('estado')->default('registrada');
             $table->string('ubicacion_especifica')->nullable();
             $table->decimal('latitud', 10, 7)->nullable();
             $table->decimal('longitud', 10, 7)->nullable();
