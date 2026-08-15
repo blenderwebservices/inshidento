@@ -12,8 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('incident_id')->constrained('incidents')->onDelete('cascade');
             $table->text('url_archivo');
-            $table->enum('tipo', ['image', 'audio', 'video'])->default('image');
-            $table->enum('origen', ['reporte_inicial', 'cierre_fixer'])->default('reporte_inicial');
+            $table->string('tipo')->default('image'); // 'image', 'video', 'document', 'external_link'
+            $table->string('origen')->default('upload'); // 'upload', 'external_link', 'reporte_inicial', 'cierre_fixer'
             $table->timestamp('fecha_carga')->useCurrent();
         });
     }

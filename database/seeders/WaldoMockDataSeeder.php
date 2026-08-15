@@ -7,13 +7,13 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\Incident;
 use App\Models\IncidentLog;
+use App\Models\IncidentMedia;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\UnitPriceCatalog;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class WaldoMockDataSeeder extends Seeder
 {
@@ -78,12 +78,10 @@ class WaldoMockDataSeeder extends Seeder
             ['codigo' => 'TII-001', 'cat' => $categories['TI'], 'desc' => 'Trazado y certificación de punto de red Utp Cat 6', 'unidad' => 'punto', 'precio' => 650.00],
         ];
 
-        $catalogCreated = [];
         foreach (Branch::ZONAS_GEOGRAFICAS as $zona) {
             foreach ($conceptosSeed as $c) {
-                // Factor regional de ajuste de costo (+/- 10%)
                 $factor = 1.0 + (rand(-10, 10) / 100);
-                $catalogCreated[] = UnitPriceCatalog::create([
+                UnitPriceCatalog::create([
                     'codigo_concepto' => $c['codigo'],
                     'zona_geografica' => $zona,
                     'categoria_id' => $c['cat']->id,
@@ -94,7 +92,7 @@ class WaldoMockDataSeeder extends Seeder
             }
         }
 
-        // 5. Usuarios Operativos (Facility Managers, Reporteros, Proveedores)
+        // 5. Usuarios Operativos (Facility Managers, Reporteros y Proveedores por Zona)
         $facilityManager = User::updateOrCreate(
             ['email' => 'fm.waldos@inshidento.com'],
             ['name' => 'Ing. Ernesto Enrique Zárate (FM Waldo\'s)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'manager']
@@ -105,27 +103,41 @@ class WaldoMockDataSeeder extends Seeder
             ['name' => 'Gerente de Tienda Waldo\'s', 'password' => Hash::make('password'), 'company_id' => $company->id, 'branch_id' => $branchesCreated[0]->id, 'rol' => 'notifier']
         );
 
-        $proveedorElectrico = User::updateOrCreate(
-            ['email' => 'electrico.contratista@servicios.com'],
-            ['name' => 'ElectroServicios del Norte S.A. (Contratista)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'fixer', 'tipo_fixer' => 'externo', 'especialidad' => 'Eléctrica']
-        );
+        // Proveedores clasificados por Zona Geográfica
+        $proveedores = [];
+        $proveedoresData = [
+            ['name' => 'ElectroServicios del Norte S.A.', 'email' => 'norte.electrico@servicios.com', 'especialidad' => 'Eléctrica Subestaciones', 'zona' => 'Noreste'],
+            ['name' => 'Climas Industriales Bajío S.A.', 'email' => 'bajio.hvac@servicios.com', 'especialidad' => 'Climatización & HVAC', 'zona' => 'Bajío'],
+            ['name' => 'Plomería e Hidros Peninsular', 'email' => 'peninsular.plomeria@servicios.com', 'especialidad' => 'Plomería Industrial', 'zona' => 'Peninsular'],
+            ['name' => 'Obra Civil Metro Norte S. de R.L.', 'email' => 'metronorte.obra@servicios.com', 'especialidad' => 'Obra Civil & Pintura', 'zona' => 'Metro Norte'],
+            ['name' => 'Redes & Telecom Occidente', 'email' => 'occidente.ti@servicios.com', 'especialidad' => 'TI & Puntos POS', 'zona' => 'Occidente'],
+            ['name' => 'Mantenimiento Nacional Emergencias', 'email' => 'emergencias.nacional@servicios.com', 'especialidad' => 'Multidisciplina Emergencias', 'zona' => null],
+        ];
 
-        $proveedorHvac = User::updateOrCreate(
-            ['email' => 'hvac.contratista@servicios.com'],
-            ['name' => 'Climas Industriales Bajío S.A. (Contratista)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'fixer', 'tipo_fixer' => 'externo', 'especialidad' => 'Climatización & HVAC']
-        );
+        foreach ($proveedoresData as $pData) {
+            $proveedores[] = User::updateOrCreate(
+                ['email' => $pData['email']],
+                [
+                    'name' => $pData['name'],
+                    'password' => Hash::make('password'),
+                    'company_id' => $company->id,
+                    'rol' => 'fixer',
+                    'tipo_fixer' => 'externo',
+                    'especialidad' => $pData['especialidad'],
+                    'zona_cobertura' => $pData['zona'],
+                ]
+            );
+        }
 
-        // 6. Generación de Incidencias en los 10 pasos del ciclo de vida
-        $stepsList = array_keys(Incident::LIFECYCLE_STEPS);
+        // 6. Generación de Incidencias en los 10 pasos del ciclo de vida (Ruta Estándar + Ruta Emergencia)
         $titulosFallas = [
             'Falla en subestación y variación de voltaje en piso de venta',
             'Fuga de agua en sanitario de clientes e inundación de pasillo 4',
             'Paro total de UMA-02 en zona de cajas registradoras',
             'Desprendimiento de impermeabilizante y gotera sobre mercancía',
             'Caída de punto de red POS-03 en caja principal',
-            'Apagón parcial en iluminación perimetral de tienda',
-            'Falla de compresor en aire acondicionado de bodega',
-            'Ruptura de tubería de agua potable en cuarto de aseo',
+            'Robo de interruptor termomagnético principal de tienda (EMERGENCIA)',
+            'Paro de bomba hidroneumática y falta de agua potable (EMERGENCIA)',
         ];
 
         for ($i = 1; $i <= 60; $i++) {
@@ -133,20 +145,23 @@ class WaldoMockDataSeeder extends Seeder
             $stepKey = Incident::LIFECYCLE_STEPS[rand(1, 10)]['key'];
             $catKey = array_rand($categories);
             $category = $categories[$catKey];
-            $titulo = $titulosFallas[rand(0, count($titulosFallas) - 1)] . " - " . $branch->nombre;
+            $isEmergency = ($i % 7 === 0);
 
-            $fixer = ($catKey === 'HVAC') ? $proveedorHvac : $proveedorElectrico;
+            $titulo = $titulosFallas[rand(0, count($titulosFallas) - 1)] . " - " . $branch->nombre;
+            $fixer = $proveedores[rand(0, count($proveedores) - 1)];
 
             $incident = Incident::create([
                 'codigo_ticket' => 'INC-WAL-' . str_pad((string) $i, 4, '0', STR_PAD_LEFT),
                 'branch_id' => $branch->id,
                 'titulo' => $titulo,
-                'descripcion' => "Falla reportada en {$branch->nombre}. Requiere atención según procedimiento estandarizado.",
+                'descripcion' => "Falla reportada en {$branch->nombre}. " . ($isEmergency ? "ATENCIÓN INMEDIATA POR RUTA ALTERNA DE EMERGENCIA CRÍTICA." : "Atención conforme a catálogo."),
                 'categoria_id' => $category->id,
-                'prioridad' => ['baja', 'media', 'alta', 'critica'][rand(0, 3)],
+                'prioridad' => $isEmergency ? 'critica' : ['baja', 'media', 'alta', 'critica'][rand(0, 3)],
+                'es_emergencia' => $isEmergency,
+                'motivo_emergencia' => $isEmergency ? "Riesgo de paro de operación / Riesgo de seguridad física" : null,
                 'estado' => $stepKey,
                 'ubicacion_especifica' => 'Área de Bodega / Piso de Venta',
-                'diagnostico_texto' => in_array($stepKey, ['diagnostico_cargado', 'cotizacion_propuesta', 'cotizacion_validada', 'oc_emitida', 'en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']) ? "Diagnóstico realizado en sitio. Se confirmó daño en componentes principales por fluctuación de voltaje." : null,
+                'diagnostico_texto' => in_array($stepKey, ['diagnostico_cargado', 'cotizacion_propuesta', 'cotizacion_validada', 'oc_emitida', 'en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']) ? "Diagnóstico realizado en sitio. Se confirmó daño en componentes principales." : null,
                 'propuesta_tecnica' => in_array($stepKey, ['cotizacion_propuesta', 'cotizacion_validada', 'oc_emitida', 'en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']) ? "Reemplazo de partes dañadas según Catálogo de Precios Unitarios de la Zona {$branch->zona_geografica}." : null,
                 'notifier_id' => $notificador->id,
                 'manager_id' => $facilityManager->id,
@@ -156,24 +171,52 @@ class WaldoMockDataSeeder extends Seeder
                 'created_at' => now()->subDays(rand(1, 30)),
             ]);
 
-            // Crear Log Inicial
+            // Log de auditoría
             IncidentLog::create([
                 'incident_id' => $incident->id,
                 'estado_anterior' => 'registrada',
                 'estado_nuevo' => $stepKey,
                 'usuario_id' => $notificador->id,
-                'comentario' => "Ticket creado en sucursal {$branch->nombre} (Zona {$branch->zona_geografica})",
+                'comentario' => "Ticket registrado en sucursal {$branch->nombre}" . ($isEmergency ? " (Declarada Emergencia Crítica)" : ""),
                 'fecha' => $incident->created_at,
             ]);
 
-            // Para incidencias en pasos 6 a 10, generar Orden de Compra (OC)
+            // Carga de Multimedia de Evidencia y Enlaces Externos (Google Drive / Microsoft 365)
+            IncidentMedia::create([
+                'incident_id' => $incident->id,
+                'origen' => 'upload',
+                'plataforma' => 'Plataforma Inshidento',
+                'titulo' => 'Fotografía de Inspección Inicial',
+                'url_archivo' => 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500&auto=format&fit=crop',
+                'tipo' => 'image',
+                'peso_bytes' => 1250000,
+                'fecha_carga' => $incident->created_at,
+            ]);
+
+            if ($i % 3 === 0) {
+                // Adjuntar Enlace Externo de Google Drive o Microsoft 365
+                $plataforma = ($i % 2 === 0) ? 'Google Drive' : 'Microsoft 365 / OneDrive';
+                $url = ($plataforma === 'Google Drive')
+                    ? 'https://drive.google.com/drive/folders/1WaldosReportesDriveDemo'
+                    : 'https://onedrive.live.com/view.aspx?resid=WaldosOneDriveReportes';
+
+                IncidentMedia::create([
+                    'incident_id' => $incident->id,
+                    'origen' => 'external_link',
+                    'plataforma' => $plataforma,
+                    'titulo' => "Carpeta de Evidencia y Memoria de Cálculo ({$plataforma})",
+                    'url_archivo' => $url,
+                    'tipo' => 'external_link',
+                    'fecha_carga' => $incident->created_at->addMinutes(15),
+                ]);
+            }
+
+            // Órdenes de Compra (OCs) para tickets en Pasos 6 al 10
             if (in_array($stepKey, ['oc_emitida', 'en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada'])) {
                 $subtotal = rand(1500, 12000);
                 $iva = $subtotal * 0.16;
                 $total = $subtotal + $iva;
                 $hasClientFolio = in_array($stepKey, ['en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']);
-
-                $poState = ($stepKey === 'cerrada' || $stepKey === 'proceso_administrativo') ? 'facturada' : ($hasClientFolio ? 'aprobada' : 'emitida');
 
                 $po = PurchaseOrder::create([
                     'folio_interno' => 'OC-INS-2026-' . str_pad((string) $i, 5, '0', STR_PAD_LEFT),
@@ -183,18 +226,17 @@ class WaldoMockDataSeeder extends Seeder
                     'subtotal' => $subtotal,
                     'iva' => $iva,
                     'monto_total' => $total,
-                    'estado' => $poState,
-                    'notas' => "Orden de compra generada automáticamente para justificar ticket {$incident->codigo_ticket} en Waldo's",
+                    'estado' => ($stepKey === 'cerrada' || $stepKey === 'proceso_administrativo') ? 'facturada' : ($hasClientFolio ? 'aprobada' : 'emitida'),
+                    'notas' => "Orden de Compra para justificar ticket {$incident->codigo_ticket}",
                     'fecha_emision' => $incident->created_at->addHours(2),
                     'fecha_aprobacion' => $hasClientFolio ? $incident->created_at->addHours(5) : null,
                     'aprobado_por_user_id' => $hasClientFolio ? $facilityManager->id : null,
                 ]);
 
-                // Item de la OC
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $po->id,
                     'codigo_concepto' => 'CONCEPTO-WALDO-' . rand(100, 999),
-                    'descripcion' => "Reparación integral e insumos de catálogo para {$incident->titulo}",
+                    'descripcion' => "Atención e insumos de catálogo para {$incident->titulo}",
                     'unidad_medida' => 'servicio',
                     'cantidad' => 1,
                     'precio_unitario' => $subtotal,
@@ -203,7 +245,6 @@ class WaldoMockDataSeeder extends Seeder
 
                 $incident->purchase_order_id = $po->id;
 
-                // Para paso 9 y 10, simular carga de documentos fiscales
                 if (in_array($stepKey, ['proceso_administrativo', 'cerrada'])) {
                     $incident->documentos_fiscales = [
                         [
@@ -217,13 +258,6 @@ class WaldoMockDataSeeder extends Seeder
                             'tipo' => 'REPSE',
                             'nombre' => 'Constancia_REPSE_Vigente.pdf',
                             'url' => "/storage/docs/repse_{$fixer->id}.pdf",
-                            'fecha_carga' => now()->subDays(2)->toDateTimeString(),
-                            'subido_por' => $fixer->name,
-                        ],
-                        [
-                            'tipo' => 'Opinión_IMSS',
-                            'nombre' => 'Opinión_Cumplimiento_IMSS_Positiva.pdf',
-                            'url' => "/storage/docs/imss_{$fixer->id}.pdf",
                             'fecha_carga' => now()->subDays(2)->toDateTimeString(),
                             'subido_por' => $fixer->name,
                         ]

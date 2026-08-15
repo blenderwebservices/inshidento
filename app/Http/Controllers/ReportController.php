@@ -17,12 +17,14 @@ class ReportController extends Controller
      */
     public function dashboard(Request $request)
     {
-        // 1. Resumen Financiero de Órdenes de Compra
+        // 1. Resumen Financiero y de Ruta de Emergencia
         $resumenFinanciero = [
             'total_oc_emitidas' => PurchaseOrder::count(),
             'monto_comprometido' => PurchaseOrder::whereIn('estado', ['emitida', 'aprobada', 'en_ejecucion'])->sum('monto_total'),
             'monto_facturado' => PurchaseOrder::where('estado', 'facturada')->sum('monto_total'),
             'promedio_ticket' => PurchaseOrder::avg('monto_total') ?? 0.00,
+            'total_emergencias' => Incident::where('es_emergencia', true)->count(),
+            'cotizaciones_pendientes' => Incident::whereIn('estado', ['cotizacion_propuesta', 'cotizacion_validada'])->count(),
         ];
 
         // 2. Reporte por Zonas Geográficas (Las 9-10 zonas de Waldo's)
@@ -34,6 +36,8 @@ class ReportController extends Controller
             $totalIncidencias = (clone $incidentsQuery)->count();
             $cerradas = (clone $incidentsQuery)->where('estado', 'cerrada')->count();
             $enProceso = (clone $incidentsQuery)->whereNotIn('estado', ['registrada', 'cerrada'])->count();
+            $emergencias = (clone $incidentsQuery)->where('es_emergencia', true)->count();
+
             $montoInvertido = PurchaseOrder::whereHas('incident', function ($q) use ($branchIds) {
                 $q->whereIn('branch_id', $branchIds);
             })->sum('monto_total');
@@ -44,6 +48,7 @@ class ReportController extends Controller
                 'total_incidencias' => $totalIncidencias,
                 'en_proceso' => $enProceso,
                 'cerradas' => $cerradas,
+                'emergencias' => $emergencias,
                 'monto_invertido' => $montoInvertido,
             ];
         }
@@ -68,6 +73,7 @@ class ReportController extends Controller
                 'paso' => $num,
                 'nombre' => $step['name'],
                 'key' => $step['key'],
+                'role' => $step['role'],
                 'rol' => $step['role'],
                 'total' => Incident::where('estado', $step['key'])->count(),
             ];

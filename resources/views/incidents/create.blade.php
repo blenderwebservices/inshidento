@@ -17,6 +17,19 @@
         <form method="POST" action="{{ route('incidents.store') }}" class="space-y-4">
             @csrf
 
+            <!-- Ruta Alterna de Emergencia Crítica Banner -->
+            <div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl space-y-2">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="es_emergencia" name="es_emergencia" value="1" class="h-4 w-4 rounded bg-slate-900 border-rose-500 text-rose-500 focus:ring-rose-500">
+                    <label for="es_emergencia" class="text-sm font-extrabold text-rose-400 cursor-pointer">
+                        🚨 Declarar como Falla de Emergencia Crítica (Ruta Alterna)
+                    </label>
+                </div>
+                <p class="text-xs text-slate-300">
+                    Habilita la <strong>Ruta Alterna de Ejecución Inmediata</strong>. Permite iniciar trabajos de reparación sin esperar la emisión previa de la Orden de Compra (OC), exigiendo su regularización post-facto.
+                </p>
+            </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Sucursal Waldo's</label>
                 <select name="branch_id" required class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
@@ -29,7 +42,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Título de la Falla / Incidencia</label>
-                <input type="text" name="titulo" required placeholder="ej. Fuga de agua en sanitario de clientes" class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
+                <input type="text" name="titulo" required placeholder="ej. Fuga de agua o robo de interruptor termomagnético" class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -54,12 +67,17 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Ubicación Específica en Sucursal</label>
-                <input type="text" name="ubicacion_especifica" placeholder="ej. Pasillo 3 / Cuarto de Máquinas" class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
+                <input type="text" name="ubicacion_especifica" placeholder="ej. Pasillo 3 / Cuarto de Máquinas / Bodega" class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Descripción Detallada del Problema</label>
-                <textarea name="descripcion" rows="4" required placeholder="Proporcione todos los detalles conocidos sobre la falla..." class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500"></textarea>
+                <textarea name="descripcion" rows="3" required placeholder="Proporcione todos los detalles conocidos sobre la falla..." class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase mb-1">Motivo de la Emergencia Crítica (Opcional)</label>
+                <input type="text" name="motivo_emergencia" placeholder="ej. Riesgo de paro de tienda / Fuerza mayor" class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
             </div>
 
             <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition shadow-lg shadow-amber-500/20">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Incident;
+use App\Models\IncidentMedia;
 use App\Models\UnitPriceCatalog;
 use App\Models\User;
 use App\Services\IncidentLifecycleService;
@@ -39,6 +40,10 @@ class IncidentController extends Controller
             $query->where('categoria_id', $request->categoria_id);
         }
 
+        if ($request->filled('es_emergencia')) {
+            $query->where('es_emergencia', true);
+        }
+
         $incidents = $query->latest()->paginate(15);
         $categories = Category::all();
         $zonas = Branch::ZONAS_GEOGRAFICAS;
@@ -62,9 +67,12 @@ class IncidentController extends Controller
             'categoria_id' => 'required|exists:categories,id',
             'prioridad' => 'required|in:baja,media,alta,critica',
             'ubicacion_especifica' => 'nullable|string',
+            'es_emergencia' => 'nullable|boolean',
+            'motivo_emergencia' => 'nullable|string',
         ]);
 
         $user = Auth::user() ?? User::where('rol', 'notifier')->first() ?? User::first();
+        $isEmergency = (bool) $request->es_emergencia;
 
         $incident = Incident::create([
             'codigo_ticket' => Incident::generateTicketCode(),
@@ -72,20 +80,40 @@ class IncidentController extends Controller
             'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'categoria_id' => $request->categoria_id,
-            'prioridad' => $request->prioridad,
+            'prioridad' => $isEmergency ? 'critica' : $request->prioridad,
+            'es_emergencia' => $isEmergency,
+            'motivo_emergencia' => $request->motivo_emergencia,
             'estado' => 'registrada',
             'ubicacion_especifica' => $request->ubicacion_especifica,
             'notifier_id' => $user->id,
         ]);
 
-        return redirect()->route('incidents.show', $incident)->with('success', 'Incidencia registrada exitosamente.');
+        $msg = $isEmergency
+            ? 'Incidencia de Emergencia Crítica registrada. Habilitada Ruta Alterna de Ejecución Inmediata.'
+            : 'Incidencia registrada exitosamente.';
+
+        return redirect()->route('incidents.show', $incident)->with('success', $msg);
     }
 
     public function show(Incident $incident)
     {
         $incident->load(['branch', 'category', 'notifier', 'manager', 'fixer', 'purchaseOrder.items', 'logs.usuario', 'media']);
-        $fixers = User::where('rol', 'fixer')->get();
-        $catalogItems = UnitPriceCatalog::where('zona_geografica', $incident->branch->zona_geografica ?? 'Centro')
+
+        $storeZone = $incident->branch->zona_geografica ?? 'Centro';
+
+        // Clasificación de proveedores por ubicación geográfica
+        $zoneSuppliers = User::where('rol', 'fixer')
+            ->where(function ($q) use ($storeZone) {
+                $q->where('zona_cobertura', $storeZone)
+                  ->orWhereNull('zona_cobertura');
+            })->get();
+
+        $otherZoneSuppliers = User::where('rol', 'fixer')
+            ->whereNotNull('zona_cobertura')
+            ->where('zona_cobertura', '!=', $storeZone)
+            ->get();
+
+        $catalogItems = UnitPriceCatalog::where('zona_geografica', $storeZone)
             ->where('categoria_id', $incident->categoria_id)
             ->get();
 
@@ -93,7 +121,7 @@ class IncidentController extends Controller
             $catalogItems = UnitPriceCatalog::where('categoria_id', $incident->categoria_id)->get();
         }
 
-        return view('incidents.show', compact('incident', 'fixers', 'catalogItems'));
+        return view('incidents.show', compact('incident', 'zoneSuppliers', 'otherZoneSuppliers', 'catalogItems'));
     }
 
     /**
@@ -141,7 +169,69 @@ class IncidentController extends Controller
         $user = Auth::user() ?? User::first();
         $po = $this->lifecycleService->generatePurchaseOrder($incident, $user, $request->items, $request->notas);
 
-        return redirect()->route('purchase-orders.show', $po)->with('success', "Orden de Compra {$po->folio_interno} generada exitosamente. Se ha actualizado el estado del ticket.");
+        return redirect()->route('purchase-orders.show', $po)->with('success', "Orden de Compra {$po->folio_interno} generada exitosamente.");
+    }
+
+    /**
+     * Cargar Archivos con validación de peso (Máx 4 MB) o Adjuntar Enlaces Externos (Google Drive / MS 365)
+     */
+    public function uploadMedia(Request $request, Incident $incident)
+    {
+        $origen = $request->input('origen', 'upload');
+
+        if ($origen === 'external_link') {
+            $request->validate([
+                'url_archivo' => 'required|url',
+                'plataforma' => 'required|string',
+                'titulo' => 'required|string|max:255',
+            ]);
+
+            IncidentMedia::create([
+                'incident_id' => $incident->id,
+                'origen' => 'external_link',
+                'plataforma' => $request->plataforma, // Google Drive, Microsoft 365, Dropbox, etc.
+                'titulo' => $request->titulo,
+                'url_archivo' => $request->url_archivo,
+                'tipo' => 'external_link',
+                'fecha_carga' => now(),
+            ]);
+
+            return redirect()->back()->with('success', "Enlace externo '{$request->titulo}' de {$request->plataforma} agregado exitosamente.");
+        } else {
+            // Carga de archivo con validación de tamaño (máx 4 MB = 4096 KB)
+            $request->validate([
+                'archivo' => 'required|file|mimes:jpg,jpeg,png,gif,mp4,webm,pdf,doc,docx,xls,xlsx|max:4096',
+                'titulo' => 'nullable|string|max:255',
+            ]);
+
+            $file = $request->file('archivo');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $size = $file->getSize();
+
+            $tipo = 'document';
+            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                $tipo = 'image';
+            } elseif (in_array($extension, ['mp4', 'webm'])) {
+                $tipo = 'video';
+            }
+
+            // Almacenar archivo en /storage/app/public/media
+            $path = $file->store('media', 'public');
+            $url = '/storage/' . $path;
+
+            IncidentMedia::create([
+                'incident_id' => $incident->id,
+                'origen' => 'upload',
+                'plataforma' => 'Plataforma Inshidento',
+                'titulo' => $request->titulo ?? $file->getClientOriginalName(),
+                'url_archivo' => $url,
+                'tipo' => $tipo,
+                'peso_bytes' => $size,
+                'fecha_carga' => now(),
+            ]);
+
+            return redirect()->back()->with('success', "Archivo '{$file->getClientOriginalName()}' subido exitosamente (" . round($size / 1024 / 1024, 2) . " MB).");
+        }
     }
 
     /**
@@ -158,15 +248,12 @@ class IncidentController extends Controller
         $user = Auth::user() ?? User::first();
 
         $nuevoDoc = [
-            'tipo' => $request->tipo_documento, // e.g. REPSE, IMSS, XML_Factura, PDF_Factura
+            'tipo' => $request->tipo_documento,
             'nombre' => $request->nombre_documento,
             'url' => $request->url_documento ?? '/storage/docs/' . uniqid() . '.pdf',
             'fecha_carga' => now()->toDateTimeString(),
             'subido_por' => $user->name,
         ];
-
-        $docsActuales = $incident->documentos_fiscales ?? [];
-        $docsActuales[] = $nuevoDoc;
 
         $this->lifecycleService->transitionTo($incident, 'proceso_administrativo', $user, "Carga de documento fiscal: {$request->nombre_documento}", [
             'documentos_fiscales' => [$nuevoDoc]

@@ -31,6 +31,8 @@ class Incident extends Model
         'descripcion',
         'categoria_id',
         'prioridad',
+        'es_emergencia',
+        'motivo_emergencia',
         'estado',
         'ubicacion_especifica',
         'latitud',
@@ -49,6 +51,7 @@ class Incident extends Model
     ];
 
     protected $casts = [
+        'es_emergencia' => 'boolean',
         'costo_mano_obra' => 'decimal:2',
         'costo_materiales' => 'decimal:2',
         'fecha_resolucion' => 'datetime',
@@ -112,7 +115,12 @@ class Incident extends Model
 
     public function canStartExecution(): bool
     {
-        // La ejecución exige la existencia de una Orden de Compra aprobada/emitida con folio
+        // En Ruta Alterna de Emergencia Crítica, se permite inicio inmediato de ejecución sin OC previa
+        if ($this->es_emergencia) {
+            return true;
+        }
+
+        // La ejecución regular exige la existencia de una Orden de Compra aprobada/emitida con folio
         if (!$this->purchase_order_id) {
             return false;
         }

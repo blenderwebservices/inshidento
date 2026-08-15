@@ -20,6 +20,7 @@ class User extends Authenticatable
         'rol',
         'tipo_fixer',
         'especialidad',
+        'zona_cobertura',
         'fcm_token',
     ];
 

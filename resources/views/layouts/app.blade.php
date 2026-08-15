@@ -49,7 +49,10 @@
                         🛒 Órdenes de Compra (OC)
                     </a>
                     <a href="{{ route('incidents.index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('incidents.*') ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                        🚨 Tablero de Incidencias (10 Pasos)
+                        🚨 Tablero de Incidencias
+                    </a>
+                    <a href="{{ route('suppliers.index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('suppliers.*') ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
+                        👷 Proveedores por Zona
                     </a>
                 </nav>
 

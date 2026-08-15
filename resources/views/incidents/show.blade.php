@@ -16,6 +16,11 @@
                 <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">
                     {{ $incident->prioridad }}
                 </span>
+                @if($incident->es_emergencia)
+                    <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-400 border border-rose-500/40 uppercase animate-pulse">
+                        🚨 Ruta Alterna de Emergencia Crítica
+                    </span>
+                @endif
             </div>
             <p class="text-sm text-slate-400 mt-1">{{ $incident->titulo }} &bull; <strong class="text-white">{{ $incident->branch->nombre }}</strong> (Zona {{ $incident->branch->zona_geografica }})</p>
         </div>
@@ -33,6 +38,30 @@
         @endif
     </div>
 
+    <!-- Emergency Critical Warning Banner if Active -->
+    @if($incident->es_emergencia)
+        <div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🚨</span>
+                    <div>
+                        <h4 class="font-extrabold text-rose-400 text-sm">Falla Marcada como Emergencia Crítica</h4>
+                        <p class="text-xs text-slate-300">Justificación: {{ $incident->motivo_emergencia ?? 'Fuerza mayor / riesgo inminente de operación' }}</p>
+                    </div>
+                </div>
+                @if(!in_array($incident->estado, ['en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']))
+                    <form method="POST" action="{{ route('incidents.advance', $incident) }}">
+                        @csrf
+                        <input type="hidden" name="next_state" value="en_ejecucion">
+                        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl transition shadow-lg shadow-rose-600/30">
+                            ⚡ Bypass Emergencia: Pasar Directo a Ejecución (Paso 7)
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <!-- 10-Step Interactive Lifecycle Stepper -->
     <div class="glass-card rounded-2xl p-6 shadow-2xl border border-slate-800 space-y-4">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Ciclo de Vida de la Incidencia (Flujo de 10 Pasos)</h3>
@@ -43,7 +72,6 @@
                 @php
                     $isCompleted = $num < $currentStepNum;
                     $isCurrent = $num === $currentStepNum;
-                    $isPending = $num > $currentStepNum;
                 @endphp
                 <div class="flex flex-col items-center text-center p-2 rounded-xl border transition {{ $isCurrent ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/10' : ($isCompleted ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-900/60 border-slate-800 text-slate-500') }}">
                     <div class="h-6 w-6 rounded-full flex items-center justify-center text-xs font-black mb-1 {{ $isCurrent ? 'bg-amber-500 text-slate-950' : ($isCompleted ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400') }}">
@@ -73,17 +101,24 @@
                     </span>
                 </div>
 
-                <!-- PASO 1 -> PASO 2: Asignar Proveedor -->
+                <!-- PASO 1 -> PASO 2: Asignar Proveedor por Ubicación Geográfica -->
                 @if($incident->estado === 'registrada')
                     <form method="POST" action="{{ route('incidents.advance', $incident) }}" class="space-y-4">
                         @csrf
                         <input type="hidden" name="next_state" value="proveedor_asignado">
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Seleccionar Proveedor / Contratista Especialista</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Seleccionar Proveedor / Contratista (Filtrado por Zona {{ $incident->branch->zona_geografica }})</label>
                             <select name="fixer_id" class="w-full bg-slate-900 border border-slate-700 text-sm text-white px-4 py-2.5 rounded-xl focus:outline-none focus:border-amber-500">
-                                @foreach($fixers as $fixer)
-                                    <option value="{{ $fixer->id }}">{{ $fixer->name }} - {{ $fixer->especialidad ?? 'General' }}</option>
-                                @endforeach
+                                <optgroup label="Sugeridos para la Zona {{ $incident->branch->zona_geografica }}">
+                                    @foreach($zoneSuppliers as $fixer)
+                                        <option value="{{ $fixer->id }}">{{ $fixer->name }} - {{ $fixer->especialidad ?? 'General' }} (Zona {{ $fixer->zona_cobertura ?? 'Local' }})</option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="Otras Zonas (Asignación de Contingencia / Emergencia)">
+                                    @foreach($otherZoneSuppliers as $fixer)
+                                        <option value="{{ $fixer->id }}">{{ $fixer->name }} - {{ $fixer->especialidad ?? 'General' }} (Zona {{ $fixer->zona_cobertura }})</option>
+                                    @endforeach
+                                </optgroup>
                             </select>
                         </div>
                         <div>
@@ -111,7 +146,7 @@
                     </form>
                 @endif
 
-                <!-- PASO 3 -> PASO 4: Propuesta Técnica y Cotización de Catálogo -->
+                <!-- PASO 3 -> PASO 4: Propuesta Técnica -->
                 @if($incident->estado === 'diagnostico_cargado')
                     <form method="POST" action="{{ route('incidents.advance', $incident) }}" class="space-y-4">
                         @csrf
@@ -196,7 +231,7 @@
                     </div>
                 @endif
 
-                <!-- PASO 6 -> PASO 7: Iniciar Ejecución (Bloqueado si no hay OC) -->
+                <!-- PASO 6 -> PASO 7: Iniciar Ejecución (Bloqueado si no hay OC, excepto en emergencias) -->
                 @if($incident->estado === 'oc_emitida' && $incident->purchaseOrder)
                     <div class="space-y-4">
                         <div class="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs space-y-2">
@@ -244,7 +279,7 @@
                     </form>
                 @endif
 
-                <!-- PASO 8 -> PASO 9: Carga de Documentos Fiscales (Factura, REPSE, IMSS) -->
+                <!-- PASO 8 -> PASO 9: Carga de Documentos Fiscales -->
                 @if($incident->estado === 'entrega_validada' || $incident->estado === 'proceso_administrativo')
                     <div class="space-y-6">
                         <div class="space-y-2">
@@ -252,7 +287,6 @@
                             <p class="text-xs text-slate-400">Suba los archivos PDF/XML para Facturación, REPSE y Opinión de Cumplimiento IMSS.</p>
                         </div>
 
-                        <!-- Form para Cargar Documento -->
                         <form method="POST" action="{{ route('incidents.upload-docs', $incident) }}" class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-4">
                             @csrf
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -276,7 +310,6 @@
                             </button>
                         </form>
 
-                        <!-- Listado de Documentos Fiscales Cargados -->
                         @if($incident->documentos_fiscales && count($incident->documentos_fiscales) > 0)
                             <div class="space-y-2">
                                 <h5 class="text-xs font-bold text-slate-400 uppercase">Documentos Cargados en Expediente</h5>
@@ -313,6 +346,112 @@
                         <div class="h-12 w-12 rounded-full bg-emerald-500 text-slate-950 font-black text-xl flex items-center justify-center mx-auto">✓</div>
                         <h4 class="text-lg font-black text-emerald-400">Ticket Cerrado & Finiquitado</h4>
                         <p class="text-xs text-slate-300">Fecha de Cierre: {{ $incident->fecha_resolucion ? $incident->fecha_resolucion->format('d/m/Y H:i') : now()->format('d/m/Y') }}</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- SECTION FOR MEDIA & EXTERNAL CLOUD LINKS (Google Drive, MS 365, Dropbox) -->
+            <div class="glass-card rounded-2xl p-6 shadow-xl border border-slate-800 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">Evidencia Multimedia & Enlaces Externos (Google Drive / MS 365)</h3>
+                    <span class="text-xs text-slate-400">Validación de Peso (Máx 4 MB)</span>
+                </div>
+
+                <!-- Dual Tabs Forms: Direct File Upload vs External Link -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Form 1: Cargar Archivo (Máx 4MB) -->
+                    <form method="POST" action="{{ route('incidents.upload-media', $incident) }}" enctype="multipart/form-data" class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 space-y-3">
+                        @csrf
+                        <input type="hidden" name="origen" value="upload">
+                        <span class="text-xs font-bold text-amber-400 uppercase block">📁 Subir Archivo Directo (Foto/Video)</span>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">Seleccionar Archivo (Máx 4 MB / Videos cortas 15-20s)</label>
+                            <input type="file" name="archivo" required accept="image/*,video/mp4,video/webm,application/pdf" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
+                        </div>
+                        <div>
+                            <input type="text" name="titulo" placeholder="Título / Descripción de la prueba" class="w-full bg-slate-950 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl">
+                        </div>
+                        <button type="submit" class="w-full py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-400">
+                            Subir Archivo
+                        </button>
+                    </form>
+
+                    <!-- Form 2: Adjuntar Enlace Externo (Google Drive / MS 365) -->
+                    <form method="POST" action="{{ route('incidents.upload-media', $incident) }}" class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 space-y-3">
+                        @csrf
+                        <input type="hidden" name="origen" value="external_link">
+                        <span class="text-xs font-bold text-blue-400 uppercase block">🔗 Adjuntar Enlace a la Nube</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <select name="plataforma" required class="w-full bg-slate-950 border border-slate-700 text-xs text-white px-2 py-2 rounded-xl">
+                                    <option value="Google Drive">Google Drive</option>
+                                    <option value="Microsoft 365 / OneDrive">Microsoft 365 / OneDrive</option>
+                                    <option value="Dropbox">Dropbox</option>
+                                    <option value="Google Sheets">Google Sheets</option>
+                                    <option value="Google Docs / Slides">Google Docs / Slides</option>
+                                    <option value="Otro">Otro Enlace Externo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <input type="text" name="titulo" required placeholder="Nombre del Recurso" class="w-full bg-slate-950 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl">
+                            </div>
+                        </div>
+                        <div>
+                            <input type="url" name="url_archivo" required placeholder="https://drive.google.com/file/d/..." class="w-full bg-slate-950 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl">
+                        </div>
+                        <button type="submit" class="w-full py-2 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-500">
+                            Adjuntar Enlace Externo
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Gallery of Uploaded Media & Links -->
+                @if($incident->media && $incident->media->count() > 0)
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase">Galería de Evidencias & Enlaces Registrados</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($incident->media as $m)
+                                <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-white truncate block max-w-[160px]">{{ $m->titulo ?? 'Evidencia' }}</span>
+                                        @if($m->isExternalLink())
+                                            <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-extrabold text-[10px] border border-blue-500/30">
+                                                {{ $m->plataforma ?? 'Nube' }}
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold text-[10px] border border-amber-500/30">
+                                                {{ strtoupper($m->tipo) }} &bull; {{ $m->formatted_size }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Content Preview -->
+                                    @if($m->tipo === 'image')
+                                        <a href="{{ $m->url_archivo }}" target="_blank" class="block">
+                                            <img src="{{ $m->url_archivo }}" alt="Evidencia" class="w-full h-32 object-cover rounded-lg border border-slate-700">
+                                        </a>
+                                    @elseif($m->tipo === 'video')
+                                        <video controls class="w-full h-32 bg-black rounded-lg border border-slate-700">
+                                            <source src="{{ $m->url_archivo }}" type="video/mp4">
+                                            Tu navegador no soporta reproducción de video.
+                                        </video>
+                                    @elseif($m->isExternalLink())
+                                        <div class="p-4 bg-slate-950 rounded-lg border border-slate-800 text-center space-y-2">
+                                            <div class="text-2xl">🔗</div>
+                                            <a href="{{ $m->url_archivo }}" target="_blank" class="inline-block px-3 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-xs hover:bg-blue-500">
+                                                Abrir en {{ $m->plataforma ?? 'Nube' }} &rarr;
+                                            </a>
+                                        </div>
+                                    @else
+                                        <div class="p-4 bg-slate-950 rounded-lg border border-slate-800 text-center">
+                                            <a href="{{ $m->url_archivo }}" target="_blank" class="text-amber-400 font-bold hover:underline">
+                                                Ver Documento PDF/Adjunto &rarr;
+                                            </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </div>

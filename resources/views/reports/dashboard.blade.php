@@ -11,6 +11,9 @@
             <p class="text-slate-400 text-sm mt-1">Análisis operativo y financiero para las 970 sucursales en las 9 Zonas Geográficas de Waldo's</p>
         </div>
         <div class="flex items-center space-x-3">
+            <a href="{{ route('suppliers.index') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-sm transition border border-slate-700">
+                👷 Menú Proveedores
+            </a>
             <a href="{{ route('incidents.create') }}" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 text-sm transition flex items-center space-x-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
                 <span>Nuevo Ticket de Incidencia</span>
@@ -19,57 +22,35 @@
     </div>
 
     <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-amber-500 shadow-xl">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Órdenes de Compra Emitidas</span>
-                <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                </div>
-            </div>
-            <div class="mt-4">
-                <span class="text-3xl font-black text-white">{{ number_format($resumenFinanciero['total_oc_emitidas']) }}</span>
-                <span class="text-xs text-slate-400 block mt-1">OCs en sistema</span>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div class="glass-card rounded-2xl p-5 border-l-4 border-amber-500 shadow-xl">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Órdenes de Compra Emitidas</span>
+            <span class="text-2xl font-black text-white block mt-2">{{ number_format($resumenFinanciero['total_oc_emitidas']) }}</span>
+            <span class="text-xs text-slate-400 block mt-1">OCs registradas</span>
         </div>
 
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-blue-500 shadow-xl">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Monto Comprometido (OCs)</span>
-                <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-            </div>
-            <div class="mt-4">
-                <span class="text-3xl font-black text-white">${{ number_format($resumenFinanciero['monto_comprometido'], 2) }}</span>
-                <span class="text-xs text-slate-400 block mt-1">En emisión / ejecución</span>
-            </div>
+        <div class="glass-card rounded-2xl p-5 border-l-4 border-blue-500 shadow-xl">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Monto Comprometido (OCs)</span>
+            <span class="text-2xl font-black text-white block mt-2">${{ number_format($resumenFinanciero['monto_comprometido'], 2) }}</span>
+            <span class="text-xs text-slate-400 block mt-1">En emisión / ejecución</span>
         </div>
 
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-emerald-500 shadow-xl">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Monto Facturado</span>
-                <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-            </div>
-            <div class="mt-4">
-                <span class="text-3xl font-black text-white">${{ number_format($resumenFinanciero['monto_facturado'], 2) }}</span>
-                <span class="text-xs text-slate-400 block mt-1">Documentos fiscalmente liquidados</span>
-            </div>
+        <div class="glass-card rounded-2xl p-5 border-l-4 border-emerald-500 shadow-xl">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Monto Facturado Liquidadas</span>
+            <span class="text-2xl font-black text-white block mt-2">${{ number_format($resumenFinanciero['monto_facturado'], 2) }}</span>
+            <span class="text-xs text-slate-400 block mt-1">Liquidación fiscal final</span>
         </div>
 
-        <div class="glass-card rounded-2xl p-6 border-l-4 border-purple-500 shadow-xl">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Costo Promedio por Ticket</span>
-                <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                </div>
-            </div>
-            <div class="mt-4">
-                <span class="text-3xl font-black text-white">${{ number_format($resumenFinanciero['promedio_ticket'], 2) }}</span>
-                <span class="text-xs text-slate-400 block mt-1">Basado en catálogo de precios unitarios</span>
-            </div>
+        <div class="glass-card rounded-2xl p-5 border-l-4 border-rose-500 shadow-xl">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Ruta de Emergencia Crítica</span>
+            <span class="text-2xl font-black text-rose-400 block mt-2">{{ $resumenFinanciero['total_emergencias'] }} Tickets</span>
+            <span class="text-xs text-rose-300 block mt-1">Atención inmediata (Bypass)</span>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5 border-l-4 border-purple-500 shadow-xl">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cotizaciones Pendientes</span>
+            <span class="text-2xl font-black text-purple-300 block mt-2">{{ $resumenFinanciero['cotizaciones_pendientes'] }} Tickets</span>
+            <span class="text-xs text-purple-400 block mt-1">Previsión presupuestal</span>
         </div>
     </div>
 
@@ -90,8 +71,9 @@
                         <th class="px-6 py-4">Zona Geográfica</th>
                         <th class="px-6 py-4 text-center">Sucursales Activas</th>
                         <th class="px-6 py-4 text-center">Total Incidencias</th>
-                        <th class="px-6 py-4 text-center">En Proceso (Pasos 1-9)</th>
-                        <th class="px-6 py-4 text-center">Cerradas (Paso 10)</th>
+                        <th class="px-6 py-4 text-center">En Proceso</th>
+                        <th class="px-6 py-4 text-center">Emergencias</th>
+                        <th class="px-6 py-4 text-center">Cerradas</th>
                         <th class="px-6 py-4 text-right">Inversión Financiera (OCs)</th>
                     </tr>
                 </thead>
@@ -107,6 +89,11 @@
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                     {{ $row['en_proceso'] }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    {{ $row['emergencias'] }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center">
@@ -143,7 +130,7 @@
                     <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
                         <div class="flex justify-between items-center text-xs mb-1.5">
                             <span class="font-bold text-slate-200">{{ $paso['nombre'] }}</span>
-                            <span class="text-slate-400">Actor: <strong class="text-amber-400">{{ $paso['rol'] }}</strong> &bull; <strong class="text-white">{{ $paso['total'] }} tickets</strong></span>
+                            <span class="text-slate-400">Actor: <strong class="text-amber-400">{{ $paso['role'] }}</strong> &bull; <strong class="text-white">{{ $paso['total'] }} tickets</strong></span>
                         </div>
                         <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                             <div class="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-500" style="width: {{ max(5, $percentage) }}%"></div>

@@ -3,6 +3,7 @@
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SupplierController;
 use App\Mail\DemoRequestedMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -20,6 +21,10 @@ Route::resource('incidents', IncidentController::class);
 Route::post('/incidents/{incident}/advance', [IncidentController::class, 'advanceState'])->name('incidents.advance');
 Route::post('/incidents/{incident}/generate-po', [IncidentController::class, 'generatePo'])->name('incidents.generate-po');
 Route::post('/incidents/{incident}/upload-docs', [IncidentController::class, 'uploadDocuments'])->name('incidents.upload-docs');
+Route::post('/incidents/{incident}/upload-media', [IncidentController::class, 'uploadMedia'])->name('incidents.upload-media');
+
+// Catálogo / Menú de Proveedores por Ubicación Geográfica
+Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
 
 // Módulo de Órdenes de Compra (OC)
 Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
