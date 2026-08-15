@@ -73,6 +73,26 @@ class PurchaseOrder extends Model
 
     public static function generateFolioInterno(): string
     {
-        return 'OC-INS-' . date('Y') . '-' . str_pad((string) (static::count() + 1), 5, '0', STR_PAD_LEFT);
+        $year = date('Y');
+        $prefix = 'OC-INS-' . $year . '-';
+
+        $latestFolio = static::where('folio_interno', 'like', $prefix . '%')
+            ->orderByRaw('length(folio_interno) DESC, folio_interno DESC')
+            ->value('folio_interno');
+
+        $nextNumber = 1;
+        if ($latestFolio) {
+            $number = (int) substr($latestFolio, strlen($prefix));
+            $nextNumber = $number + 1;
+        }
+
+        $candidate = $prefix . str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
+
+        while (static::where('folio_interno', $candidate)->exists()) {
+            $nextNumber++;
+            $candidate = $prefix . str_pad((string) $nextNumber, 5, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 }
