@@ -5,6 +5,8 @@ import './CTA.css';
 
 const CTA = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
     nombre: '',
     empresa: '',
@@ -12,9 +14,33 @@ const CTA = () => {
     sucursales: '1-10 sucursales'
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('/api/demo-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await response.json();
+        setErrorMsg(data.message || 'Ocurrió un error al enviar la solicitud. Intenta nuevamente.');
+      }
+    } catch (err) {
+      setErrorMsg('Error de conexión al enviar el formulario.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -90,8 +116,12 @@ const CTA = () => {
                 </select>
               </div>
 
-              <button type="submit" className="btn-primary form-submit-btn">
-                <span>Enviar Solicitud</span>
+              {errorMsg && (
+                <p style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '1rem' }}>{errorMsg}</p>
+              )}
+
+              <button type="submit" disabled={loading} className="btn-primary form-submit-btn">
+                <span>{loading ? 'Enviando...' : 'Enviar Solicitud'}</span>
                 <Send size={16} />
               </button>
             </form>
