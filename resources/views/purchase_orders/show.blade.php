@@ -124,7 +124,7 @@
             <div class="space-y-8">
                 <div class="h-12 border-b border-dashed border-slate-400 max-w-xs mx-auto"></div>
                 <div>
-                    <div class="font-extrabold text-slate-900">Ing. Ernesto Enrique Zárate</div>
+                    <div class="font-extrabold text-slate-900">Ing. Enrique Peinbert</div>
                     <div class="text-slate-500">Facility Manager Waldo's (Autorizó)</div>
                 </div>
             </div>

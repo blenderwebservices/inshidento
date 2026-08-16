@@ -95,7 +95,7 @@ class WaldoMockDataSeeder extends Seeder
         // 5. Usuarios Operativos (Facility Managers, Reporteros y Proveedores por Zona)
         $facilityManager = User::updateOrCreate(
             ['email' => 'fm.waldos@inshidento.com'],
-            ['name' => 'Ing. Ernesto Enrique Zárate (FM Waldo\'s)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'manager']
+            ['name' => 'Ing. Enrique Peimbert (FM Waldo\'s)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'manager']
         );
 
         $notificador = User::updateOrCreate(

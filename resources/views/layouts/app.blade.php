@@ -59,7 +59,7 @@
                 <!-- User profile badge -->
                 <div class="hidden md:flex items-center space-x-3 text-xs">
                     <div class="text-right">
-                        <div class="font-semibold text-slate-200">Ing. Ernesto E. Zárate</div>
+                        <div class="font-semibold text-slate-200">Ing. Enrique Peinbert</div>
                         <div class="text-amber-400">Facility Manager Waldo's</div>
                     </div>
                     <div class="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-amber-400">
