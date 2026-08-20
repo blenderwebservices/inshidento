@@ -169,10 +169,18 @@ class BillingReportResource extends Resource
             ]);
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return in_array($user->rol, ['admin', 'billing_admin']);
+    }
+
     public static function getRelations(): array
     {
         return [];
     }
+
 
     public static function getPages(): array
     {

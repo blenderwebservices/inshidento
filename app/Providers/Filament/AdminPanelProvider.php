@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Inshidento AI Backend')
+            ->sidebarCollapsible()
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -39,12 +40,18 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-globe-alt')
                     ->sort(-100),
             ])
-            ->userMenuItems([
+            ->userMenuItems(fn (): array => array_filter([
+                session()->has('impersonator_id') ? MenuItem::make()
+                    ->label('⚠️ REGRESAR A SUPER ADMIN')
+                    ->url(route('impersonate.leave'))
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning') : null,
                 MenuItem::make()
                     ->label('Sitio Principal (Landing)')
                     ->url('/')
                     ->icon('heroicon-o-arrow-left-on-rectangle'),
-            ])
+            ]))
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

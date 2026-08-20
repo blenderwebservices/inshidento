@@ -49,3 +49,9 @@ Route::post('/api/demo-request', function (Request $request) {
         'message' => 'Solicitud enviada con éxito.'
     ]);
 });
+
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/impersonate/leave', [\App\Http\Controllers\ImpersonationController::class, 'leave'])->name('impersonate.leave');
+    Route::get('/impersonate/{user}', [\App\Http\Controllers\ImpersonationController::class, 'impersonate'])->name('impersonate');
+});
+

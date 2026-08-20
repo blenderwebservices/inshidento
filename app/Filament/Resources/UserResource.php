@@ -128,6 +128,12 @@ class UserResource extends Resource
                     ]),
             ])
             ->actions([
+                Tables\Actions\Action::make('impersonate')
+                    ->label('Impersonalizar')
+                    ->icon('heroicon-o-user-minus')
+                    ->color('warning')
+                    ->url(fn (User $record): string => route('impersonate', $record))
+                    ->visible(fn (User $record): bool => auth()->check() && (auth()->user()->rol === 'admin' || session()->has('impersonator_id')) && auth()->id() !== $record->id),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -136,6 +142,14 @@ class UserResource extends Resource
                 ]),
             ]);
     }
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return in_array($user->rol, ['admin', 'manager']);
+    }
+
 
     public static function getRelations(): array
     {

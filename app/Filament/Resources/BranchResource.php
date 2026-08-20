@@ -91,10 +91,18 @@ class BranchResource extends Resource
             ]);
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return in_array($user->rol, ['admin', 'manager']);
+    }
+
     public static function getRelations(): array
     {
         return [];
     }
+
 
     public static function getPages(): array
     {

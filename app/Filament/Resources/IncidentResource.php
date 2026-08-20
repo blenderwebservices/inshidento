@@ -300,10 +300,46 @@ class IncidentResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if (!$user) {
+            return $query;
+        }
+
+        if ($user->rol === 'admin') {
+            return $query;
+        }
+
+        if ($user->rol === 'manager') {
+            return $query;
+        }
+
+        if ($user->rol === 'fixer') {
+            return $query->where(function ($q) use ($user) {
+                $q->where('fixer_id', $user->id)
+                  ->orWhereNull('fixer_id');
+            });
+        }
+
+        if ($user->rol === 'notifier') {
+            return $query->where('notifier_id', $user->id);
+        }
+
+        if ($user->rol === 'billing_admin') {
+            return $query->where('estado', 'resuelta');
+        }
+
+        return $query;
+    }
+
     public static function getRelations(): array
     {
         return [];
     }
+
 
     public static function getPages(): array
     {

@@ -151,3 +151,24 @@ Sincronización Offline: Capacidad de capturar datos sin internet y subirlos al 
 Notificaciones en Tiempo Real: Uso de WebSockets o FCM para alertas inmediatas.
 
 Escalabilidad: El API debe soportar el crecimiento de usuarios y el peso de los archivos multimedia.
+
+8. Acceso Landing-Backend, Navegación y Niveles de Usuario / Impersonalización
+
+8.1. Control de Acceso y Autenticación:
+- Frontend / Landing Page activa como portal principal institucional y de solicitud de demos.
+- Acceso al Backend (Dashboard) protegido por autenticación mediante contraseña (correo y credenciales).
+
+8.2. Disposición del Menú de Navegación:
+- Menú lateral izquierdo tradicional (Sidebar Navigation) con soporte para colapsarse/ocultarse dinámicamente en lugar del menú superior previamente sugerido.
+
+8.3. Niveles de Usuario y Restricciones de Visualización/Operación:
+- Admin (Super Admin): Acceso total sin restricciones a todas las operaciones, configuración de empresas/tenants, gestión de sucursales, usuarios, incidentes y reportes de facturación.
+- Gestor / Supervisor: Gestión y triaje de incidentes, asignación a fixers y monitoreo operativo.
+- Fixer / Técnico: Visualización de cola de trabajo, auto-asignación, cambio de estado de trabajos y evidencia de cierre.
+- Notificador / Reportero: Creación de tickets de incidencias y seguimiento de sus propios reportes.
+- Administrador de Facturación: Acceso a reportes financieros de fixers externos y liquidación de servicios.
+
+8.4. Función Especial de Impersonalización (Super Admin):
+- El Super Admin cuenta con la capacidad de "Impersonalizar" (asumir temporalmente el rol y contexto de cualquier otro usuario/rol del sistema).
+- Durante la impersonalización, se aplican estrictamente todas las restricciones visuales (menús, recursos, acciones) y funcionales del rol asumido, permitiendo auditar y confirmar la experiencia exacta de cada usuario.
+- Se despliega una barra/notificación indicadora permanente de "Modo Impersonalizado" con un botón de retorno rápido para "Regresar a Super Admin".

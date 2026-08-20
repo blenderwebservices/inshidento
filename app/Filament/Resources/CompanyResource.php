@@ -77,10 +77,18 @@ class CompanyResource extends Resource
             ]);
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->rol === 'admin';
+    }
+
     public static function getRelations(): array
     {
         return [];
     }
+
 
     public static function getPages(): array
     {
