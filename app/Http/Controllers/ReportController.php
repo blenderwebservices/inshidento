@@ -17,6 +17,11 @@ class ReportController extends Controller
      */
     public function dashboard(Request $request)
     {
+        $user = auth()->user();
+        if ($user && !$user->canViewReports()) {
+            return redirect()->route('incidents.index')->with('error', 'Acceso restringido: El rol Usuario solo puede registrar incidencias y no tiene acceso a reportes o dashboards.');
+        }
+
         // 1. Resumen Financiero y de Ruta de Emergencia
         $resumenFinanciero = [
             'total_oc_emitidas' => PurchaseOrder::count(),

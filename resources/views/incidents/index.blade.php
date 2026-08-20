@@ -10,10 +10,17 @@
             <h1 class="text-3xl font-extrabold text-white tracking-tight">Tablero de Incidencias Operativas</h1>
             <p class="text-slate-400 text-sm mt-1">Seguimiento en tiempo real del ciclo de vida de 10 pasos en sucursales Waldo's</p>
         </div>
+        @php $u = Auth::user() ?? \App\Models\User::first(); @endphp
+        @if($u && $u->canCreateIncidents())
         <a href="{{ route('incidents.create') }}" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 text-sm transition flex items-center space-x-2 w-fit">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
             <span>Reportar Nueva Incidencia</span>
         </a>
+        @else
+        <div class="px-4 py-2 bg-purple-500/10 border border-purple-500/30 text-purple-300 font-bold rounded-xl text-xs flex items-center space-x-2">
+            <span>👁️ Modo Stakeholder (Sólo Lectura)</span>
+        </div>
+        @endif
     </div>
 
     <!-- Filters Bar -->

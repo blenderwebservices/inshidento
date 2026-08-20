@@ -14,6 +14,11 @@ class SupplierController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        if ($user && !$user->canViewSuppliers()) {
+            return redirect()->route('incidents.index')->with('error', 'Acceso restringido: Tu rol no tiene permisos para ver el menú de proveedores.');
+        }
+
         $query = User::where('rol', 'fixer')->withCount(['incidentsAsFixer as total_tickets']);
 
         if ($request->filled('zona')) {

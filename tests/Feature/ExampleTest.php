@@ -19,4 +19,12 @@ class ExampleTest extends TestCase
         $response->assertSee('Noreste');
         $response->assertSee('Bajío');
     }
+
+    public function test_landing_page_returns_successful_response(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+        $response->assertSee('Inshidento AI');
+    }
 }

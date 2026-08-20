@@ -53,6 +53,11 @@ class IncidentController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
+        if ($user && !$user->canCreateIncidents()) {
+            return redirect()->route('incidents.index')->with('error', 'El rol Stakeholder sólo tiene permisos de lectura y no puede dar de alta incidencias.');
+        }
+
         $branches = Branch::with('company')->get();
         $categories = Category::all();
         return view('incidents.create', compact('branches', 'categories'));
@@ -60,6 +65,11 @@ class IncidentController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user() ?? User::where('rol', 'notifier')->first() ?? User::first();
+        if ($user && !$user->canCreateIncidents()) {
+            return redirect()->route('incidents.index')->with('error', 'El rol Stakeholder sólo tiene permisos de lectura y no puede dar de alta incidencias.');
+        }
+
         $request->validate([
             'branch_id' => 'required|exists:branches,id',
             'titulo' => 'required|string|max:255',
@@ -129,12 +139,15 @@ class IncidentController extends Controller
      */
     public function advanceState(Request $request, Incident $incident)
     {
+        $user = Auth::user() ?? User::first();
+        if ($user && $user->isStakeholder()) {
+            return redirect()->back()->with('error', 'El rol Stakeholder sólo tiene permisos de lectura y no puede modificar el estado de incidencias.');
+        }
+
         $request->validate([
             'next_state' => 'required|string',
             'comentario' => 'nullable|string',
         ]);
-
-        $user = Auth::user() ?? User::first();
 
         try {
             $extraData = [];
@@ -157,6 +170,11 @@ class IncidentController extends Controller
      */
     public function generatePo(Request $request, Incident $incident)
     {
+        $user = Auth::user() ?? User::first();
+        if ($user && !$user->canManagePurchaseOrders()) {
+            return redirect()->back()->with('error', 'El rol Stakeholder / Usuario no tiene permisos para emitir Órdenes de Compra.');
+        }
+
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.codigo_concepto' => 'required|string',

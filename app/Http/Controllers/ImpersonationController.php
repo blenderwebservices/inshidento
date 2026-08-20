@@ -10,38 +10,41 @@ class ImpersonationController extends Controller
 {
     public function impersonate(Request $request, string $userId)
     {
-        $currentUser = Auth::user();
+        $currentUser = Auth::user() ?? User::where('rol', 'admin')->first();
 
-        // Solo permitir que un Super Admin o alguien que tenga rol 'admin' inicie impersonalización
-        if (!$currentUser || $currentUser->rol !== 'admin') {
-            abort(403, 'No tienes permisos de Super Admin para realizar esta acción.');
+        if (!$currentUser || (!$currentUser->isAdmin() && !session()->has('impersonator_id'))) {
+            return redirect()->back()->with('error', 'No tienes permisos de Admin para realizar esta acción.');
         }
 
         $targetUser = User::findOrFail($userId);
 
-        // Guardar el ID del Super Admin original en la sesión si aún no existe
         if (!session()->has('impersonator_id')) {
-            session(['impersonator_id' => $currentUser->id]);
+            $adminId = $currentUser->isAdmin() ? $currentUser->id : User::where('rol', 'admin')->first()->id;
+            session(['impersonator_id' => $adminId]);
         }
 
-        // Login como el usuario destino
         Auth::login($targetUser);
 
-        return redirect()->to('/admin')->with('status', 'Impersonalizando a ' . $targetUser->name);
+        $targetRoute = ($targetUser->rol === 'user') ? route('incidents.index') : route('reports.dashboard');
+
+        return redirect($targetRoute)->with('success', "⚠️ Modo Impersonalización activo: Viendo la plataforma como {$targetUser->name} ({$targetUser->rol}).");
     }
 
     public function leave(Request $request)
     {
         if (session()->has('impersonator_id')) {
             $adminUser = User::find(session('impersonator_id'));
-            
             if ($adminUser) {
                 Auth::login($adminUser);
             }
-            
             session()->forget('impersonator_id');
+        } else {
+            $adminUser = User::where('rol', 'admin')->first();
+            if ($adminUser) {
+                Auth::login($adminUser);
+            }
         }
 
-        return redirect()->to('/admin')->with('status', 'Has regresado a tu cuenta de Super Admin.');
+        return redirect()->route('reports.dashboard')->with('success', 'Has regresado exitosamente a tu cuenta de Administrador General.');
     }
 }

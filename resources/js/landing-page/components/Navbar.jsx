@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Menu, X, ArrowRight, Building2, Sparkles } from 'lucide-react';
+import { ShieldCheck, Menu, X, ArrowRight, Building2, Sparkles, BarChart2 } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -37,12 +37,11 @@ const Navbar = () => {
         </nav>
 
         <div className="navbar-actions">
-          <a href="/admin/login" className="btn-secondary nav-btn-login">
-            <Building2 size={16} /> Acceso Backend / Login
+          <a href="/reports/dashboard" className="btn-secondary nav-btn-login">
+            <BarChart2 size={16} /> Dashboard Ejecutivo
           </a>
-          <a href="#cta" className="btn-primary nav-btn-demo">
-            <span>Solicitar Demo</span>
-            <ArrowRight size={16} />
+          <a href="/admin" className="btn-secondary nav-btn-login">
+            <Building2 size={16} /> Panel Admin
           </a>
 
           <button 

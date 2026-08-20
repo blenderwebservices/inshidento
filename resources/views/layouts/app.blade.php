@@ -24,9 +24,24 @@
         }
     </style>
 </head>
-<body class="h-full flex flex-col antialiased selection:bg-amber-500 selection:text-slate-900">
+    @php
+        $currentUser = Auth::user() ?? \App\Models\User::where('rol', 'admin')->first();
+    @endphp
+
+    @if(session()->has('impersonator_id'))
+        <div class="bg-amber-500 text-slate-950 px-4 py-2 text-xs font-extrabold flex items-center justify-between shadow-lg sticky top-0 z-50">
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span>⚠️ MODALIDAD IMPERSONALIZACIÓN ACTIVA: Viendo la plataforma como <strong>{{ $currentUser->name }}</strong> (Rol: <strong>{{ strtoupper($currentUser->rol) }}</strong>). Toda la app responde según las restricciones de este rol.</span>
+            </div>
+            <a href="{{ route('impersonate.leave') }}" class="px-3 py-1 bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold rounded-lg transition border border-amber-400/40 flex items-center space-x-1">
+                <span>⚠️ REGRESAR A SUPER ADMIN</span>
+            </a>
+        </div>
+    @endif
+
     <!-- Navbar Navigation -->
-    <header class="glass-header sticky top-0 z-50">
+    <header class="glass-header sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo & Brand -->
@@ -41,30 +56,61 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <nav class="flex items-center space-x-1 sm:space-x-4">
+                <nav class="flex items-center space-x-1 sm:space-x-3">
+                    <a href="{{ route('landing') }}" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                        🌐 Landing
+                    </a>
+                    @if($currentUser && $currentUser->canViewReports())
                     <a href="{{ route('reports.dashboard') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('reports.dashboard') ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                        📊 Reportes & Métricas
+                        📊 Reportes
                     </a>
+                    @endif
+
+                    @if($currentUser && $currentUser->canViewPurchaseOrders())
                     <a href="{{ route('purchase-orders.index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('purchase-orders.*') ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                        🛒 Órdenes de Compra (OC)
+                        🛒 OCs
                     </a>
+                    @endif
+
                     <a href="{{ route('incidents.index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('incidents.*') ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                        🚨 Tablero de Incidencias
+                        🚨 Incidencias
                     </a>
+
+                    @if($currentUser && $currentUser->canViewSuppliers())
                     <a href="{{ route('suppliers.index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('suppliers.*') ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                        👷 Proveedores por Zona
+                        👷 Proveedores
                     </a>
+                    @endif
+
+                    @if($currentUser && ($currentUser->isAdmin() || $currentUser->isFm()))
+                    <a href="/admin" class="px-3 py-2 rounded-lg text-sm font-semibold text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 border border-amber-500/30 transition">
+                        ⚙️ Admin
+                    </a>
+                    @endif
                 </nav>
 
-                <!-- User profile badge -->
+                <!-- User profile & Quick Role Switcher -->
                 <div class="hidden md:flex items-center space-x-3 text-xs">
-                    <div class="text-right">
-                        <div class="font-semibold text-slate-200">Ing. Enrique Peinbert</div>
-                        <div class="text-amber-400">Facility Manager Waldo's</div>
+                    <div class="flex items-center space-x-1 bg-slate-950/80 border border-slate-800 rounded-xl p-1.5 shadow-inner">
+                        <span class="text-slate-400 text-[10px] uppercase font-bold px-1.5">Viendo como:</span>
+                        <a href="{{ route('switch-role', 'admin') }}" title="Admin: Hace Todo" class="px-2 py-1 rounded-lg font-bold transition {{ ($currentUser && $currentUser->isAdmin()) ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Admin
+                        </a>
+                        <a href="{{ route('switch-role', 'fm') }}" title="FM: Revisa e ingresa incidencias y OCs" class="px-2 py-1 rounded-lg font-bold transition {{ ($currentUser && $currentUser->isFm()) ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            FM
+                        </a>
+                        <a href="{{ route('switch-role', 'stakeholder') }}" title="Stakeholder: Sólo Lectura, Reportes y Dashboards" class="px-2 py-1 rounded-lg font-bold transition {{ ($currentUser && $currentUser->isStakeholder()) ? 'bg-purple-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            Stakeholder
+                        </a>
+                        <a href="{{ route('switch-role', 'user') }}" title="User: Sólo Registrar Incidencias" class="px-2 py-1 rounded-lg font-bold transition {{ ($currentUser && $currentUser->isUser()) ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                            User
+                        </a>
                     </div>
-                    <div class="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-amber-400">
-                        EZ
-                    </div>
+                    @if(session()->has('impersonator_id'))
+                    <a href="{{ route('impersonate.leave') }}" class="px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl font-bold transition flex items-center space-x-1">
+                        <span>⚠️ Regresar a Admin</span>
+                    </a>
+                    @endif
                 </div>
             </div>
         </div>

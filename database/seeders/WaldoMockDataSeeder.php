@@ -92,15 +92,25 @@ class WaldoMockDataSeeder extends Seeder
             }
         }
 
-        // 5. Usuarios Operativos (Facility Managers, Reporteros y Proveedores por Zona)
+        // 5. Usuarios Operativos por Rol (Admin, FM, Stakeholder, User)
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@waldos.com'],
+            ['name' => 'Lic. Roberto Garza (Admin General)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'admin']
+        );
+
         $facilityManager = User::updateOrCreate(
-            ['email' => 'fm.waldos@inshidento.com'],
-            ['name' => 'Ing. Enrique Peimbert (FM Waldo\'s)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'manager']
+            ['email' => 'fm@waldos.com'],
+            ['name' => 'Ing. Enrique Peimbert (Facility Manager - FM)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'fm']
+        );
+
+        $stakeholder = User::updateOrCreate(
+            ['email' => 'stakeholder@waldos.com'],
+            ['name' => 'Lic. Sofía Mendoza (Directora Finanzas / Stakeholder)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'stakeholder']
         );
 
         $notificador = User::updateOrCreate(
-            ['email' => 'gerente.tienda@waldos.com'],
-            ['name' => 'Gerente de Tienda Waldo\'s', 'password' => Hash::make('password'), 'company_id' => $company->id, 'branch_id' => $branchesCreated[0]->id, 'rol' => 'notifier']
+            ['email' => 'user@waldos.com'],
+            ['name' => 'Carlos Ramírez (Gerente de Tienda / User)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'branch_id' => $branchesCreated[0]->id, 'rol' => 'user']
         );
 
         // Proveedores clasificados por Zona Geográfica

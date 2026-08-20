@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('reports.dashboard');
+    return view('landing');
+})->name('landing');
+
+Route::get('/landing', function () {
+    return view('landing');
 });
 
 // Reportes y Métricas Ejecutivas (9 Zonas, Financiero OC)
@@ -49,6 +53,8 @@ Route::post('/api/demo-request', function (Request $request) {
         'message' => 'Solicitud enviada con éxito.'
     ]);
 });
+
+Route::get('/switch-role/{role}', [\App\Http\Controllers\RoleSwitchController::class, 'switchRole'])->name('switch-role');
 
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/impersonate/leave', [\App\Http\Controllers\ImpersonationController::class, 'leave'])->name('impersonate.leave');

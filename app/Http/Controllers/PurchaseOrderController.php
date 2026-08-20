@@ -22,6 +22,11 @@ class PurchaseOrderController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        if ($user && !$user->canViewPurchaseOrders()) {
+            return redirect()->route('incidents.index')->with('error', 'Acceso restringido: Tu rol no tiene permisos para ver Órdenes de Compra.');
+        }
+
         $query = PurchaseOrder::with(['incident.branch', 'supplier', 'approvedBy']);
 
         if ($request->filled('estado')) {
@@ -62,11 +67,15 @@ class PurchaseOrderController extends Controller
      */
     public function registerClientFolio(Request $request, PurchaseOrder $purchaseOrder)
     {
+        $user = Auth::user() ?? \App\Models\User::first();
+        if ($user && !$user->canManagePurchaseOrders()) {
+            return redirect()->back()->with('error', 'Acceso denegado: El rol Stakeholder / Usuario no puede autorizar Órdenes de Compra.');
+        }
+
         $request->validate([
             'folio_cliente' => 'required|string|max:100',
         ]);
 
-        $user = Auth::user() ?? \App\Models\User::first();
         $this->lifecycleService->registerClientFolio($purchaseOrder, $request->folio_cliente, $user);
 
         return redirect()->back()->with('success', "Folio del cliente registrado exitosamente ({$request->folio_cliente}). La Orden de Compra ha sido autorizada.");

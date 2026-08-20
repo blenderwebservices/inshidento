@@ -61,4 +61,49 @@ class User extends Authenticatable
     {
         return $this->hasMany(BillingReport::class, 'fixer_id');
     }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->rol, ['admin', 'superadmin']);
+    }
+
+    public function isFm(): bool
+    {
+        return in_array($this->rol, ['fm', 'manager', 'facility_manager']);
+    }
+
+    public function isStakeholder(): bool
+    {
+        return $this->rol === 'stakeholder';
+    }
+
+    public function isUser(): bool
+    {
+        return in_array($this->rol, ['user', 'notifier', 'store_user']);
+    }
+
+    public function canCreateIncidents(): bool
+    {
+        return $this->isAdmin() || $this->isFm() || $this->isUser();
+    }
+
+    public function canViewReports(): bool
+    {
+        return $this->isAdmin() || $this->isFm() || $this->isStakeholder();
+    }
+
+    public function canManagePurchaseOrders(): bool
+    {
+        return $this->isAdmin() || $this->isFm();
+    }
+
+    public function canViewPurchaseOrders(): bool
+    {
+        return $this->isAdmin() || $this->isFm() || $this->isStakeholder();
+    }
+
+    public function canViewSuppliers(): bool
+    {
+        return $this->isAdmin() || $this->isFm() || $this->isStakeholder();
+    }
 }

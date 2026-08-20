@@ -111,12 +111,12 @@ const Hero = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="hero-actions"
             >
-              <a href="#cta" className="btn-primary hero-btn-main">
-                <span>Agendar Demo Empresarial</span>
+              <a href="/reports/dashboard" className="btn-primary hero-btn-main">
+                <span>Ir al Dashboard & Tablero de Incidencias</span>
                 <ArrowRight size={18} />
               </a>
               <a href="/admin" className="btn-secondary hero-btn-sub">
-                <span>Acceder al Panel Backend</span>
+                <span>Panel Admin (Filament)</span>
                 <ArrowRight size={16} />
               </a>
             </motion.div>
