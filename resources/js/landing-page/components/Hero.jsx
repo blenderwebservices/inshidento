@@ -115,10 +115,6 @@ const Hero = () => {
                 <span>Ir al Dashboard & Tablero de Incidencias</span>
                 <ArrowRight size={18} />
               </a>
-              <a href="/admin" className="btn-secondary hero-btn-sub">
-                <span>Panel Admin (Filament)</span>
-                <ArrowRight size={16} />
-              </a>
             </motion.div>
           </div>
 

@@ -47,12 +47,16 @@ class UserResource extends Resource
                     Forms\Components\Select::make('rol')
                         ->options([
                             'admin' => 'Administrador General',
+                            'fm' => 'Facility Manager (FM)',
                             'manager' => 'Gestor / Supervisor',
+                            'stakeholder' => 'Stakeholder (Lectura Ejecutiva)',
                             'notifier' => 'Notificador / Reportero',
+                            'user' => 'Usuario de Tienda',
                             'fixer' => 'Fixer / Técnico',
                             'billing_admin' => 'Administrador de Facturación',
                         ])
                         ->required()
+                        ->reactive()
                         ->label('Rol en el Sistema'),
                     Forms\Components\Select::make('company_id')
                         ->relationship('company', 'nombre')
@@ -63,7 +67,15 @@ class UserResource extends Resource
                         ->relationship('branch', 'nombre')
                         ->searchable()
                         ->preload()
-                        ->label('Sucursal Asignada (Notificadores)'),
+                        ->label('Sucursal Principal (Notificador / Tienda)'),
+                    Forms\Components\Select::make('branches')
+                        ->relationship('branches', 'nombre')
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->label('Sucursales Asignadas (FM / Gestor)')
+                        ->helperText('Asigna 1 o múltiples sucursales de distintas zonas geográficas.')
+                        ->visible(fn (Forms\Get $get): bool => in_array($get('rol'), ['fm', 'manager', 'facility_manager'])),
                     Forms\Components\Select::make('tipo_fixer')
                         ->options([
                             'interno' => 'Fixer Interno (Plantilla)',
@@ -92,25 +104,21 @@ class UserResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
-                        'manager' => 'warning',
-                        'notifier' => 'info',
+                        'fm', 'manager' => 'warning',
+                        'stakeholder' => 'info',
+                        'notifier', 'user' => 'gray',
                         'fixer' => 'success',
-                        'billing_admin' => 'gray',
                         default => 'secondary',
                     })
                     ->label('Rol'),
-                Tables\Columns\TextColumn::make('tipo_fixer')
+                Tables\Columns\TextColumn::make('branches.nombre')
+                    ->label('Sucursales FM')
                     ->badge()
-                    ->color(fn (?string $state): string => match ($state) {
-                        'interno' => 'info',
-                        'externo' => 'warning',
-                        default => 'gray',
-                    })
-                    ->label('Tipo Fixer'),
+                    ->separator(', '),
                 Tables\Columns\TextColumn::make('company.nombre')
                     ->label('Empresa'),
                 Tables\Columns\TextColumn::make('branch.nombre')
-                    ->label('Sucursal'),
+                    ->label('Sucursal Principal'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('rol')

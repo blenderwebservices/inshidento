@@ -24,7 +24,14 @@ class IncidentController extends Controller
 
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $allowedBranchIds = $user ? $user->assignedBranchIds() : null;
+
         $query = Incident::with(['branch', 'category', 'notifier', 'fixer', 'purchaseOrder']);
+
+        if ($allowedBranchIds !== null) {
+            $query->whereIn('branch_id', $allowedBranchIds);
+        }
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);

@@ -103,6 +103,10 @@ class WaldoMockDataSeeder extends Seeder
             ['name' => 'Ing. Enrique Peimbert (Facility Manager - FM)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'fm']
         );
 
+        // Asignar 3 sucursales de distintas zonas geográficas al FM
+        $fmBranches = array_slice($branchesCreated, 0, 6); // Sucursales de Noreste y Bajío
+        $facilityManager->branches()->sync(collect($fmBranches)->pluck('id'));
+
         $stakeholder = User::updateOrCreate(
             ['email' => 'stakeholder@waldos.com'],
             ['name' => 'Lic. Sofía Mendoza (Directora Finanzas / Stakeholder)', 'password' => Hash::make('password'), 'company_id' => $company->id, 'rol' => 'stakeholder']

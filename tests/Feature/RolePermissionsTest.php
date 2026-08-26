@@ -114,4 +114,32 @@ class RolePermissionsTest extends TestCase
         $this->assertFalse(session()->has('impersonator_id'));
         $this->assertEquals('admin', auth()->user()->rol);
     }
+
+    public function test_only_admin_can_access_filament_panel(): void
+    {
+        $this->seed();
+        $panel = \Filament\Facades\Filament::getPanel('admin');
+
+        $admin = User::where('rol', 'admin')->first();
+        $fm = User::where('rol', 'fm')->first();
+        $user = User::where('rol', 'user')->first();
+
+        $this->assertTrue($admin->canAccessPanel($panel));
+        $this->assertFalse($fm->canAccessPanel($panel));
+        $this->assertFalse($user->canAccessPanel($panel));
+    }
+
+    public function test_fm_dashboard_is_scoped_to_assigned_branches_and_stakeholder_is_global(): void
+    {
+        $this->seed();
+        $fm = User::where('rol', 'fm')->first();
+        $stakeholder = User::where('rol', 'stakeholder')->first();
+
+        $this->assertNull($stakeholder->assignedBranchIds());
+        $this->assertIsArray($fm->assignedBranchIds());
+        $this->assertNotEmpty($fm->assignedBranchIds());
+
+        $this->actingAs($fm)->get(route('reports.dashboard'))->assertStatus(200);
+        $this->actingAs($stakeholder)->get(route('reports.dashboard'))->assertStatus(200);
+    }
 }

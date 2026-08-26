@@ -82,7 +82,7 @@
                     </a>
                     @endif
 
-                    @if($currentUser && ($currentUser->isAdmin() || $currentUser->isFm()))
+                    @if($currentUser && $currentUser->isAdmin())
                     <a href="/admin" class="px-3 py-2 rounded-lg text-sm font-semibold text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 border border-amber-500/30 transition">
                         ⚙️ Admin
                     </a>

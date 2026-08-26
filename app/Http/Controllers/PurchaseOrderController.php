@@ -29,6 +29,13 @@ class PurchaseOrderController extends Controller
 
         $query = PurchaseOrder::with(['incident.branch', 'supplier', 'approvedBy']);
 
+        $allowedBranchIds = $user ? $user->assignedBranchIds() : null;
+        if ($allowedBranchIds !== null) {
+            $query->whereHas('incident', function ($q) use ($allowedBranchIds) {
+                $q->whereIn('branch_id', $allowedBranchIds);
+            });
+        }
+
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }

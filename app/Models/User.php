@@ -6,10 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable, HasUuids;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin();
+    }
 
     protected $fillable = [
         'name',
@@ -45,6 +52,33 @@ class User extends Authenticatable
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class);
+    }
+
+    /**
+     * Devuelve la lista de IDs de sucursales asignadas al usuario.
+     * Retorna null si el usuario es Admin o Stakeholder (acceso global a todas las sucursales).
+     * Retorna array de UUIDs de sucursales asignadas si es FM o Usuario Notificador.
+     */
+    public function assignedBranchIds(): ?array
+    {
+        if ($this->isAdmin() || $this->isStakeholder()) {
+            return null;
+        }
+
+        if ($this->isFm()) {
+            $assigned = $this->branches()->pluck('branches.id')->toArray();
+            if (!empty($assigned)) {
+                return $assigned;
+            }
+            return $this->branch_id ? [$this->branch_id] : [];
+        }
+
+        return $this->branch_id ? [$this->branch_id] : [];
     }
 
     public function incidentsAsNotifier()

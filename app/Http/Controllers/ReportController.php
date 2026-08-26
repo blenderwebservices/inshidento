@@ -22,34 +22,52 @@ class ReportController extends Controller
             return redirect()->route('incidents.index')->with('error', 'Acceso restringido: El rol Usuario solo puede registrar incidencias y no tiene acceso a reportes o dashboards.');
         }
 
+        $allowedBranchIds = $user ? $user->assignedBranchIds() : null;
+
+        $poQuery = PurchaseOrder::query();
+        $incidentsQueryBase = Incident::query();
+
+        if ($allowedBranchIds !== null) {
+            $incidentsQueryBase->whereIn('branch_id', $allowedBranchIds);
+            $poQuery->whereHas('incident', function ($q) use ($allowedBranchIds) {
+                $q->whereIn('branch_id', $allowedBranchIds);
+            });
+        }
+
         // 1. Resumen Financiero y de Ruta de Emergencia
         $resumenFinanciero = [
-            'total_oc_emitidas' => PurchaseOrder::count(),
-            'monto_comprometido' => PurchaseOrder::whereIn('estado', ['emitida', 'aprobada', 'en_ejecucion'])->sum('monto_total'),
-            'monto_facturado' => PurchaseOrder::where('estado', 'facturada')->sum('monto_total'),
-            'promedio_ticket' => PurchaseOrder::avg('monto_total') ?? 0.00,
-            'total_emergencias' => Incident::where('es_emergencia', true)->count(),
-            'cotizaciones_pendientes' => Incident::whereIn('estado', ['cotizacion_propuesta', 'cotizacion_validada'])->count(),
+            'total_oc_emitidas' => (clone $poQuery)->count(),
+            'monto_comprometido' => (clone $poQuery)->whereIn('estado', ['emitida', 'aprobada', 'en_ejecucion'])->sum('monto_total'),
+            'monto_facturado' => (clone $poQuery)->where('estado', 'facturada')->sum('monto_total'),
+            'promedio_ticket' => (clone $poQuery)->avg('monto_total') ?? 0.00,
+            'total_emergencias' => (clone $incidentsQueryBase)->where('es_emergencia', true)->count(),
+            'cotizaciones_pendientes' => (clone $incidentsQueryBase)->whereIn('estado', ['cotizacion_propuesta', 'cotizacion_validada'])->count(),
         ];
 
         // 2. Reporte por Zonas Geográficas (Las 9-10 zonas de Waldo's)
         $zonasReporte = [];
         foreach (Branch::ZONAS_GEOGRAFICAS as $zona) {
-            $branchIds = Branch::where('zona_geografica', $zona)->pluck('id');
-            $incidentsQuery = Incident::whereIn('branch_id', $branchIds);
+            $branchQuery = Branch::where('zona_geografica', $zona);
+            if ($allowedBranchIds !== null) {
+                $branchQuery->whereIn('id', $allowedBranchIds);
+            }
+            $branchIdsInZone = $branchQuery->pluck('id');
+            $totalSucursales = $branchIdsInZone->count();
 
-            $totalIncidencias = (clone $incidentsQuery)->count();
-            $cerradas = (clone $incidentsQuery)->where('estado', 'cerrada')->count();
-            $enProceso = (clone $incidentsQuery)->whereNotIn('estado', ['registrada', 'cerrada'])->count();
-            $emergencias = (clone $incidentsQuery)->where('es_emergencia', true)->count();
+            $incidentsInZone = Incident::whereIn('branch_id', $branchIdsInZone);
 
-            $montoInvertido = PurchaseOrder::whereHas('incident', function ($q) use ($branchIds) {
-                $q->whereIn('branch_id', $branchIds);
+            $totalIncidencias = (clone $incidentsInZone)->count();
+            $cerradas = (clone $incidentsInZone)->where('estado', 'cerrada')->count();
+            $enProceso = (clone $incidentsInZone)->whereNotIn('estado', ['registrada', 'cerrada'])->count();
+            $emergencias = (clone $incidentsInZone)->where('es_emergencia', true)->count();
+
+            $montoInvertido = PurchaseOrder::whereHas('incident', function ($q) use ($branchIdsInZone) {
+                $q->whereIn('branch_id', $branchIdsInZone);
             })->sum('monto_total');
 
             $zonasReporte[] = [
                 'zona' => $zona,
-                'total_sucursales' => Branch::where('zona_geografica', $zona)->count(),
+                'total_sucursales' => $totalSucursales,
                 'total_incidencias' => $totalIncidencias,
                 'en_proceso' => $enProceso,
                 'cerradas' => $cerradas,
@@ -59,14 +77,24 @@ class ReportController extends Controller
         }
 
         // 3. Reporte por Disciplina / Categoría
-        $categoriasReporte = Category::withCount('incidents')->get()->map(function ($cat) {
-            $monto = PurchaseOrder::whereHas('incident', function ($q) use ($cat) {
+        $categoriasReporte = Category::all()->map(function ($cat) use ($allowedBranchIds) {
+            $incQuery = Incident::where('categoria_id', $cat->id);
+            if ($allowedBranchIds !== null) {
+                $incQuery->whereIn('branch_id', $allowedBranchIds);
+            }
+            $totalTickets = $incQuery->count();
+
+            $poCatQuery = PurchaseOrder::whereHas('incident', function ($q) use ($cat, $allowedBranchIds) {
                 $q->where('categoria_id', $cat->id);
-            })->sum('monto_total');
+                if ($allowedBranchIds !== null) {
+                    $q->whereIn('branch_id', $allowedBranchIds);
+                }
+            });
+            $monto = $poCatQuery->sum('monto_total');
 
             return [
                 'nombre' => $cat->nombre,
-                'total_tickets' => $cat->incidents_count,
+                'total_tickets' => $totalTickets,
                 'monto_total' => $monto,
             ];
         });
@@ -74,18 +102,20 @@ class ReportController extends Controller
         // 4. Reporte por Estado del Ciclo de Vida (10 Pasos)
         $incidenciasPorPaso = [];
         foreach (Incident::LIFECYCLE_STEPS as $num => $step) {
+            $stepQuery = (clone $incidentsQueryBase)->where('estado', $step['key']);
             $incidenciasPorPaso[] = [
                 'paso' => $num,
                 'nombre' => $step['name'],
                 'key' => $step['key'],
                 'role' => $step['role'],
                 'rol' => $step['role'],
-                'total' => Incident::where('estado', $step['key'])->count(),
+                'total' => $stepQuery->count(),
             ];
         }
 
         // 5. Estado de Órdenes de Compra
-        $ocPorEstado = PurchaseOrder::select('estado', DB::raw('count(*) as count'), DB::raw('sum(monto_total) as total'))
+        $ocPorEstado = (clone $poQuery)
+            ->select('estado', DB::raw('count(*) as count'), DB::raw('sum(monto_total) as total'))
             ->groupBy('estado')
             ->get();
 
