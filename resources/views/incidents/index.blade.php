@@ -85,8 +85,15 @@
                         @endphp
                         <tr class="hover:bg-slate-800/40 transition">
                             <td class="px-6 py-4">
-                                <span class="font-extrabold text-white text-sm block">{{ $inc->codigo_ticket }}</span>
-                                <span class="text-xs text-amber-400 font-semibold">{{ $inc->branch->nombre ?? 'N/A' }}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-extrabold text-white text-sm block">{{ $inc->codigo_ticket }}</span>
+                                    @if($inc->isPendingFmRegularization())
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-orange-500/20 text-orange-400 border border-orange-500/40 uppercase">
+                                            🟠 Regularizar FM
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-xs text-cyan-400 font-semibold">{{ $inc->branch->nombre ?? 'N/A' }}</span>
                                 <span class="text-xs text-slate-500 block">Zona {{ $inc->branch->zona_geografica ?? 'N/A' }}</span>
                             </td>
                             <td class="px-6 py-4">
@@ -95,12 +102,12 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="space-y-1">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/20 block">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 block">
                                         Paso {{ $stepNum }}: {{ $stepInfo['name'] }}
                                     </span>
                                     <!-- Progress bar -->
                                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                        <div class="bg-amber-400 h-full rounded-full" style="width: {{ ($stepNum / 10) * 100 }}%"></div>
+                                        <div class="bg-cyan-400 h-full rounded-full" style="width: {{ ($stepNum / 10) * 100 }}%"></div>
                                     </div>
                                 </div>
                             </td>
@@ -109,6 +116,10 @@
                                     <a href="{{ route('purchase-orders.show', $inc->purchaseOrder) }}" class="inline-block px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:underline">
                                         {{ $inc->purchaseOrder->folio_interno }}
                                     </a>
+                                @elseif($inc->isPendingFmRegularization())
+                                    <span class="text-[11px] px-2 py-1 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30 font-bold block">
+                                        🟠 Pendiente OC (FM)
+                                    </span>
                                 @else
                                     <span class="text-xs text-slate-500 italic">Sin OC Emitida</span>
                                 @endif

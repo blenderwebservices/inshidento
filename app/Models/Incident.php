@@ -133,6 +133,23 @@ class Incident extends Model
         return in_array($po->estado, ['emitida', 'aprobada', 'en_ejecucion']);
     }
 
+    /**
+     * Determina si la incidencia fue ejecutada por Bypass de Emergencia y requiere
+     * proceso de regularización administrativa posterior por parte del FM.
+     */
+    public function isPendingFmRegularization(): bool
+    {
+        return $this->es_emergencia && !$this->purchase_order_id;
+    }
+
+    /**
+     * Determina si una incidencia de emergencia crítica ya fue regularizada administrativamente con su OC.
+     */
+    public function isRegularized(): bool
+    {
+        return $this->es_emergencia && (bool) $this->purchase_order_id;
+    }
+
     public function resolveRouteBinding($value, $field = null)
     {
         return $this->where('id', $value)

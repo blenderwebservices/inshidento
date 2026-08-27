@@ -13,12 +13,21 @@
             </a>
             <div class="flex items-center space-x-3">
                 <h1 class="text-3xl font-black text-white tracking-tight">{{ $incident->codigo_ticket }}</h1>
-                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 uppercase">
                     {{ $incident->prioridad }}
                 </span>
                 @if($incident->es_emergencia)
                     <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-400 border border-rose-500/40 uppercase animate-pulse">
                         🚨 Ruta Alterna de Emergencia Crítica
+                    </span>
+                @endif
+                @if($incident->isPendingFmRegularization())
+                    <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-orange-500/20 text-orange-400 border border-orange-500/50 uppercase">
+                        🟠 Regularización FM Pendiente
+                    </span>
+                @elseif($incident->isRegularized())
+                    <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 uppercase">
+                        ✓ Regularizado Post-Emergencia
                     </span>
                 @endif
             </div>
@@ -40,31 +49,57 @@
 
     <!-- Emergency Critical Warning Banner if Active -->
     @if($incident->es_emergencia)
-        <div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <span class="text-xl">🚨</span>
-                    <div>
-                        <h4 class="font-extrabold text-rose-400 text-sm">Falla Marcada como Emergencia Crítica</h4>
-                        <p class="text-xs text-slate-300">Justificación: {{ $incident->motivo_emergencia ?? 'Fuerza mayor / riesgo inminente de operación' }}</p>
+        @if($incident->isPendingFmRegularization())
+            <div class="p-5 bg-orange-500/15 border-2 border-orange-500/50 rounded-2xl space-y-2 text-orange-200 shadow-xl shadow-orange-500/10">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">🟠</span>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h4 class="font-extrabold text-orange-300 text-sm">PROCESO DE REGULARIZACIÓN POST-EJECUCIÓN PENDIENTE</h4>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-orange-500 text-slate-950 uppercase tracking-wider">Solo FM / Admin</span>
+                            </div>
+                            <p class="text-xs text-orange-200/90 mt-0.5">
+                                Esta incidencia se ejecutó vía <strong>Bypass de Emergencia Crítica</strong>. El <strong>Facility Manager (FM)</strong> debe completar retroactivamente los pasos omitidos (Diagnóstico, Cotización y Emisión de Orden de Compra).
+                            </p>
+                        </div>
                     </div>
                 </div>
-                @if(!in_array($incident->estado, ['en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']))
-                    <form method="POST" action="{{ route('incidents.advance', $incident) }}">
-                        @csrf
-                        <input type="hidden" name="next_state" value="en_ejecucion">
-                        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl transition shadow-lg shadow-rose-600/30">
-                            ⚡ Bypass Emergencia: Pasar Directo a Ejecución (Paso 7)
-                        </button>
-                    </form>
-                @endif
             </div>
-        </div>
+        @else
+            <div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">🚨</span>
+                        <div>
+                            <h4 class="font-extrabold text-rose-400 text-sm">Falla Marcada como Emergencia Crítica</h4>
+                            <p class="text-xs text-slate-300">Justificación: {{ $incident->motivo_emergencia ?? 'Fuerza mayor / riesgo inminente de operación' }}</p>
+                        </div>
+                    </div>
+                    @if(!in_array($incident->estado, ['en_ejecucion', 'entrega_validada', 'proceso_administrativo', 'cerrada']))
+                        <form method="POST" action="{{ route('incidents.advance', $incident) }}">
+                            @csrf
+                            <input type="hidden" name="next_state" value="en_ejecucion">
+                            <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl transition shadow-lg shadow-rose-600/30">
+                                ⚡ Bypass Emergencia: Pasar Directo a Ejecución (Paso 7)
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+        @endif
     @endif
 
     <!-- 10-Step Interactive Lifecycle Stepper -->
     <div class="glass-card rounded-2xl p-6 shadow-2xl border border-slate-800 space-y-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Ciclo de Vida de la Incidencia (Flujo de 10 Pasos)</h3>
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Ciclo de Vida de la Incidencia (Flujo de 10 Pasos)</h3>
+            @if($incident->isPendingFmRegularization())
+                <span class="text-xs text-orange-400 font-extrabold flex items-center space-x-1">
+                    <span>🟠 Pasos 2-6 omitidos por Bypass &bull; En Proceso de Regularización por FM</span>
+                </span>
+            @endif
+        </div>
         
         <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
             @php $currentStepNum = $incident->getCurrentStepNumber(); @endphp
@@ -72,12 +107,25 @@
                 @php
                     $isCompleted = $num < $currentStepNum;
                     $isCurrent = $num === $currentStepNum;
+                    $isBypassedPending = $incident->isPendingFmRegularization() && in_array($num, [2,3,4,5,6]);
                 @endphp
-                <div class="flex flex-col items-center text-center p-2 rounded-xl border transition {{ $isCurrent ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/10' : ($isCompleted ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-900/60 border-slate-800 text-slate-500') }}">
-                    <div class="h-6 w-6 rounded-full flex items-center justify-center text-xs font-black mb-1 {{ $isCurrent ? 'bg-amber-500 text-slate-950' : ($isCompleted ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400') }}">
+                <div class="flex flex-col items-center text-center p-2 rounded-xl border transition relative 
+                    {{ $isCurrent ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 font-extrabold shadow-lg shadow-cyan-500/10' : 
+                       ($isBypassedPending ? 'bg-orange-500/15 border-orange-500/60 text-orange-300 font-bold' : 
+                       ($isCompleted ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-900/60 border-slate-800 text-slate-500')) }}">
+                    
+                    <div class="h-6 w-6 rounded-full flex items-center justify-center text-xs font-black mb-1 
+                        {{ $isCurrent ? 'bg-cyan-500 text-slate-950' : 
+                           ($isBypassedPending ? 'bg-orange-500 text-slate-950' : 
+                           ($isCompleted ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400')) }}">
                         {{ $num }}
                     </div>
                     <span class="text-[10px] leading-tight font-medium">{{ $step['name'] }}</span>
+                    @if($isBypassedPending)
+                        <span class="mt-1 text-[9px] px-1 py-0.5 rounded bg-orange-500/20 text-orange-300 font-black border border-orange-500/40">
+                            BYPASS
+                        </span>
+                    @endif
                 </div>
             @endforeach
         </div>
@@ -88,6 +136,85 @@
         
         <!-- Left 2-Cols: Active Step Control Panel -->
         <div class="lg:col-span-2 space-y-6">
+
+            <!-- PROCESO DE REGULARIZACIÓN POST-EJECUCIÓN PARA EL FACILITY MANAGER (FM) -->
+            @php
+                $currentUser = Auth::user() ?? \App\Models\User::first();
+                $isFmOrAdmin = $currentUser && ($currentUser->isFm() || $currentUser->isAdmin());
+            @endphp
+
+            @if($incident->isPendingFmRegularization())
+                <div class="glass-card rounded-2xl p-6 shadow-2xl border-2 border-orange-500/60 bg-orange-500/10 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-orange-500/30 pb-4 gap-2">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-orange-500 text-slate-950 uppercase tracking-wider">Módulo de Regularización FM</span>
+                                <span class="text-xs text-orange-400 font-extrabold">&bull; Pasos 2 a 6 Omitidos por Bypass</span>
+                            </div>
+                            <h3 class="text-lg font-black text-white mt-1">Proceso de Regularización Administrativa Post-Ejecución</h3>
+                            <p class="text-xs text-orange-200/90 mt-0.5">El Facility Manager (FM) debe generar retroactivamente el expediente y la Orden de Compra (OC) para finiquito financiero.</p>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-500/20 text-orange-300 text-xs font-bold rounded-lg border border-orange-500/40 w-fit">
+                            Exclusivo FM / Admin
+                        </span>
+                    </div>
+
+                    @if($isFmOrAdmin)
+                        <form method="POST" action="{{ route('incidents.generate-po', $incident) }}" class="space-y-4">
+                            @csrf
+                            <div class="p-4 bg-slate-900/90 rounded-xl border border-orange-500/30 space-y-2">
+                                <h4 class="text-xs font-bold text-orange-300 uppercase">1. Justificación de Regularización Post-Emergencia</h4>
+                                <textarea name="notas" rows="2" class="w-full bg-slate-950 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-orange-500" placeholder="Escriba notas de regularización del expediente...">Trabajo atendido inmediatamente por bypass de emergencia crítica. Regularización de expediente administrativo y finiquito financiero por FM.</textarea>
+                            </div>
+
+                            <div class="p-4 bg-slate-900/90 rounded-xl border border-orange-500/30 space-y-3">
+                                <h4 class="text-xs font-bold text-orange-300 uppercase">2. Seleccionar Concepto del Catálogo de Precios Unitarios (Zona {{ $incident->branch->zona_geografica }})</h4>
+
+                                @if($catalogItems->count() > 0)
+                                    <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                                        <span class="font-bold text-slate-400 block mb-1">Concepto Seleccionado para OC de Regularización:</span>
+                                        <div class="flex items-center justify-between text-white font-mono">
+                                            <span>{{ $catalogItems->first()->codigo_concepto }} &bull; {{ $catalogItems->first()->descripcion }}</span>
+                                            <span class="font-black text-cyan-400">${{ number_format($catalogItems->first()->precio_unitario, 2) }}</span>
+                                        </div>
+                                        <input type="hidden" name="items[0][unit_price_catalog_id]" value="{{ $catalogItems->first()->id }}">
+                                        <input type="hidden" name="items[0][codigo_concepto]" value="{{ $catalogItems->first()->codigo_concepto }}">
+                                        <input type="hidden" name="items[0][descripcion]" value="{{ $catalogItems->first()->descripcion }}">
+                                        <input type="hidden" name="items[0][unidad_medida]" value="{{ $catalogItems->first()->unidad_medida }}">
+                                        <input type="hidden" name="items[0][precio_unitario]" value="{{ $catalogItems->first()->precio_unitario }}">
+                                    </div>
+                                @else
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <input type="text" name="items[0][codigo_concepto]" value="CONCEPTO-EMERG-01" placeholder="Código" class="bg-slate-950 border border-slate-700 text-xs text-white p-2.5 rounded-xl">
+                                        <input type="text" name="items[0][descripcion]" value="Atención urgente por emergencia crítica" placeholder="Descripción" class="bg-slate-950 border border-slate-700 text-xs text-white p-2.5 rounded-xl">
+                                        <input type="text" name="items[0][unidad_medida]" value="servicio" placeholder="Unidad" class="bg-slate-950 border border-slate-700 text-xs text-white p-2.5 rounded-xl">
+                                        <input type="number" step="0.01" name="items[0][precio_unitario]" value="3500.00" placeholder="Precio" class="bg-slate-950 border border-slate-700 text-xs text-white p-2.5 rounded-xl">
+                                    </div>
+                                @endif
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Cantidad / Volumetría</label>
+                                        <input type="number" step="0.01" name="items[0][cantidad]" value="1.00" class="w-full bg-slate-950 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-3 bg-orange-500 hover:bg-orange-400 text-slate-950 font-black rounded-xl text-xs transition shadow-lg shadow-orange-500/30 flex items-center justify-center space-x-2">
+                                <span>🟠 Finalizar Regularización Administrativa FM & Emitir Orden de Compra &rarr;</span>
+                            </button>
+                        </form>
+                    @else
+                        <div class="p-4 bg-slate-900/90 rounded-xl border border-orange-500/30 text-center space-y-2">
+                            <span class="text-xl">🔒</span>
+                            <h4 class="font-extrabold text-orange-300 text-xs">Regularización Restringida al Facility Manager (FM)</h4>
+                            <p class="text-xs text-slate-400">
+                                Este proceso de regularización post-ejecución solo puede ser completado por el <strong>Facility Manager (FM)</strong> asignado o el <strong>Administrador General</strong>.
+                            </p>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             <!-- Dynamic Action Card depending on Current Step -->
             <div class="glass-card rounded-2xl p-6 shadow-xl border border-slate-800 space-y-6">
