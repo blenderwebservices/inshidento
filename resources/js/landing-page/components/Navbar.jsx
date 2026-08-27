@@ -32,6 +32,7 @@ const Navbar = () => {
           <a href="#flujo" onClick={() => setMobileMenuOpen(false)}>Flujo End-to-End</a>
           <a href="#empresas" onClick={() => setMobileMenuOpen(false)}>Empresas & Sucursales</a>
           <a href="#fixers" onClick={() => setMobileMenuOpen(false)}>Fixers & Facturación</a>
+          <a href="#precios" onClick={() => setMobileMenuOpen(false)}>Precios & Planes</a>
           <a href="#ia" onClick={() => setMobileMenuOpen(false)}>Inteligencia Artificial</a>
           <a href="#beneficios" onClick={() => setMobileMenuOpen(false)}>Beneficios</a>
         </nav>

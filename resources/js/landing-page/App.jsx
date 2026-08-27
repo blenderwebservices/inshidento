@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import Workflow from './components/Workflow';
 import MultiTenantSection from './components/MultiTenantSection';
 import BillingSection from './components/BillingSection';
+import PricingSection from './components/PricingSection';
 import AIFeatures from './components/AIFeatures';
 import Features from './components/Features';
 import CTA from './components/CTA';
@@ -18,6 +19,7 @@ function App() {
         <Workflow />
         <MultiTenantSection />
         <BillingSection />
+        <PricingSection />
         <AIFeatures />
         <Features />
         <CTA />

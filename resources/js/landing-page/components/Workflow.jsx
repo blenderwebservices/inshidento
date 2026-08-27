@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Camera, Mic, Video, UserCheck, ShieldAlert, CheckCircle2, 
-  Receipt, ArrowRight, Layers, Clock, FileCheck, DollarSign
+  Receipt, ArrowRight, Layers, Clock, FileCheck, DollarSign, Smartphone
 } from 'lucide-react';
+import MobileAppSimulatorModal from './MobileAppSimulatorModal';
 import './Workflow.css';
 
 const workflowSteps = [
@@ -19,7 +20,8 @@ const workflowSteps = [
       'Selección de sucursal y geolocalización de precisión'
     ],
     icon: <Camera size={26} />,
-    badgeColor: '#3b82f6'
+    badgeColor: '#3b82f6',
+    hasAppSimulator: true
   },
   {
     step: 'Etapa 02',
@@ -80,6 +82,8 @@ const workflowSteps = [
 ];
 
 const Workflow = () => {
+  const [mobileSimulatorOpen, setMobileSimulatorOpen] = useState(false);
+
   return (
     <section id="flujo" className="workflow-section section-padding">
       <div className="container">
@@ -127,11 +131,26 @@ const Workflow = () => {
                     </li>
                   ))}
                 </ul>
+
+                {step.hasAppSimulator && (
+                  <button 
+                    onClick={() => setMobileSimulatorOpen(true)}
+                    className="btn-sim-app-trigger mt-3"
+                  >
+                    <Smartphone size={16} />
+                    <span>📱 Probar Simulador App Notificadora</span>
+                  </button>
+                )}
               </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      <MobileAppSimulatorModal 
+        isOpen={mobileSimulatorOpen} 
+        onClose={() => setMobileSimulatorOpen(false)} 
+      />
     </section>
   );
 };
