@@ -223,9 +223,9 @@ class IncidentController extends Controller
 
             return redirect()->back()->with('success', "Enlace externo '{$request->titulo}' de {$request->plataforma} agregado exitosamente.");
         } else {
-            // Carga de archivo con validación de tamaño (máx 4 MB = 4096 KB)
+            // Carga de archivo con validación de tipo de imagen (JPG, JPEG, PNG, GIF, TIF, TIFF, WEBP, BMP, SVG) y control de peso (Máx 10 MB = 10240 KB)
             $request->validate([
-                'archivo' => 'required|file|mimes:jpg,jpeg,png,gif,mp4,webm,pdf,doc,docx,xls,xlsx|max:4096',
+                'archivo' => 'required|file|mimes:jpg,jpeg,png,gif,tif,tiff,webp,bmp,svg,mp4,webm,pdf,doc,docx,xls,xlsx|max:10240',
                 'titulo' => 'nullable|string|max:255',
             ]);
 
@@ -234,9 +234,9 @@ class IncidentController extends Controller
             $size = $file->getSize();
 
             $tipo = 'document';
-            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'tif', 'tiff', 'webp', 'bmp', 'svg'])) {
                 $tipo = 'image';
-            } elseif (in_array($extension, ['mp4', 'webm'])) {
+            } elseif (in_array($extension, ['mp4', 'webm', 'mov', 'avi'])) {
                 $tipo = 'video';
             }
 

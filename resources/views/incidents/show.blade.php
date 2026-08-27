@@ -354,24 +354,24 @@
             <div class="glass-card rounded-2xl p-6 shadow-xl border border-slate-800 space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">Evidencia Multimedia & Enlaces Externos (Google Drive / MS 365)</h3>
-                    <span class="text-xs text-slate-400">Validación de Peso (Máx 4 MB)</span>
+                    <span class="text-xs text-slate-400">Validación de Peso (Máx 10 MB)</span>
                 </div>
 
                 <!-- Dual Tabs Forms: Direct File Upload vs External Link -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Form 1: Cargar Archivo (Máx 4MB) -->
+                    <!-- Form 1: Cargar Archivo (Máx 10MB) -->
                     <form method="POST" action="{{ route('incidents.upload-media', $incident) }}" enctype="multipart/form-data" class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 space-y-3">
                         @csrf
                         <input type="hidden" name="origen" value="upload">
-                        <span class="text-xs font-bold text-amber-400 uppercase block">📁 Subir Archivo Directo (Foto/Video)</span>
+                        <span class="text-xs font-bold text-cyan-400 uppercase block">📁 Subir Archivo Directo (Foto/Video)</span>
                         <div>
-                            <label class="block text-[11px] text-slate-400 mb-1">Seleccionar Archivo (Máx 4 MB / Videos cortas 15-20s)</label>
-                            <input type="file" name="archivo" required accept="image/*,video/mp4,video/webm,application/pdf" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
+                            <label class="block text-[11px] text-slate-400 mb-1">Seleccionar Archivo (Imágenes: JPG, JPEG, PNG, GIF, TIFF, WEBP — Máx 10 MB)</label>
+                            <input type="file" name="archivo" required accept="image/*,image/tiff,image/tif,video/mp4,video/webm,application/pdf" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-500 file:text-slate-950 hover:file:bg-cyan-400">
                         </div>
                         <div>
                             <input type="text" name="titulo" placeholder="Título / Descripción de la prueba" class="w-full bg-slate-950 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl">
                         </div>
-                        <button type="submit" class="w-full py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-400">
+                        <button type="submit" class="w-full py-2 bg-cyan-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-cyan-400">
                             Subir Archivo
                         </button>
                     </form>

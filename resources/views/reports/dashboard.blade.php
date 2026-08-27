@@ -14,7 +14,7 @@
             <a href="{{ route('suppliers.index') }}" class="px-4 py-2.5 subcard-bg dash-title font-bold rounded-xl text-sm transition shadow-sm hover:opacity-90">
                 👷 Menú Proveedores
             </a>
-            <a href="{{ route('incidents.create') }}" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 text-sm transition flex items-center space-x-2">
+            <a href="{{ route('incidents.create') }}" class="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20 text-sm transition flex items-center space-x-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
                 <span>Nuevo Ticket de Incidencia</span>
             </a>
@@ -23,7 +23,7 @@
 
     <!-- KPI Metric Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-        <div class="glass-card rounded-2xl p-5 border-l-4 border-amber-500">
+        <div class="glass-card rounded-2xl p-5 border-l-4 border-cyan-500">
             <span class="text-[11px] font-bold card-lbl uppercase tracking-wider block">Órdenes de Compra Emitidas</span>
             <span class="text-2xl font-black card-val block mt-2">{{ number_format($resumenFinanciero['total_oc_emitidas']) }}</span>
             <span class="text-xs card-lbl block mt-1">OCs registradas</span>
@@ -61,7 +61,7 @@
                 <h2 class="text-lg font-extrabold dash-title">Métricas de Operación por Zona Geográfica</h2>
                 <p class="text-xs dash-sub mt-0.5">Desglose de las 9 zonas operativas supervisadas por Facility Managers (FMs)</p>
             </div>
-            <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold rounded-full">9 Zonas Cobertura Total</span>
+            <span class="px-3 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 text-xs font-bold rounded-full">9 Zonas Cobertura Total</span>
         </div>
 
         <div class="overflow-x-auto">
@@ -81,13 +81,13 @@
                     @foreach($zonasReporte as $row)
                         <tr class="table-row-hover transition">
                             <td class="px-6 py-4 font-bold table-text-main flex items-center space-x-2">
-                                <span class="h-2.5 w-2.5 rounded-full bg-amber-500 inline-block"></span>
+                                <span class="h-2.5 w-2.5 rounded-full bg-cyan-500 inline-block"></span>
                                 <span>{{ $row['zona'] }}</span>
                             </td>
                             <td class="px-6 py-4 text-center table-text-sub">{{ $row['total_sucursales'] }}</td>
                             <td class="px-6 py-4 text-center font-bold table-text-main">{{ $row['total_incidencias'] }}</td>
                             <td class="px-6 py-4 text-center">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
                                     {{ $row['en_proceso'] }}
                                 </span>
                             </td>
@@ -101,7 +101,7 @@
                                     {{ $row['cerradas'] }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-right font-black text-amber-600 dark:text-amber-300">
+                            <td class="px-6 py-4 text-right font-black text-cyan-600 dark:text-cyan-300">
                                 ${{ number_format($row['monto_invertido'], 2) }}
                             </td>
                         </tr>
@@ -130,10 +130,10 @@
                     <div class="p-3 subcard-bg rounded-xl">
                         <div class="flex justify-between items-center text-xs mb-1.5">
                             <span class="font-bold table-text-main">{{ $paso['nombre'] }}</span>
-                            <span class="dash-sub">Actor: <strong class="text-amber-500">{{ $paso['role'] }}</strong> &bull; <strong class="table-text-main">{{ $paso['total'] }} tickets</strong></span>
+                            <span class="dash-sub">Actor: <strong class="text-cyan-400">{{ $paso['role'] }}</strong> &bull; <strong class="table-text-main">{{ $paso['total'] }} tickets</strong></span>
                         </div>
                         <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div class="bg-gradient-to-r from-amber-500 to-amber-400 h-full rounded-full transition-all duration-500" style="width: {{ max(5, $percentage) }}%"></div>
+                            <div class="bg-gradient-to-r from-cyan-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: {{ max(5, $percentage) }}%"></div>
                         </div>
                     </div>
                 @endforeach
@@ -158,7 +158,7 @@
                         </div>
                         <div class="text-right">
                             <span class="text-xs dash-sub block">Total Financiero OC</span>
-                            <span class="font-black text-amber-500 dark:text-amber-400 text-lg">${{ number_format($cat['monto_total'], 2) }}</span>
+                            <span class="font-black text-cyan-500 dark:text-cyan-400 text-lg">${{ number_format($cat['monto_total'], 2) }}</span>
                         </div>
                     </div>
                 @endforeach
@@ -167,3 +167,4 @@
     </div>
 </div>
 @endsection
+
