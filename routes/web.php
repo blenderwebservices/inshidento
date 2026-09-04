@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\MobileAppController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SupplierController;
@@ -52,6 +53,15 @@ Route::post('/api/demo-request', function (Request $request) {
         'success' => true,
         'message' => 'Solicitud enviada con éxito.'
     ]);
+});
+
+// ─── API App Móvil (Simulador & Panel Ejecutivo FAB) ─────────────────────────
+Route::prefix('api/app')->group(function () {
+    Route::get('/users',     [MobileAppController::class, 'users'])->name('api.app.users');
+    Route::get('/branches',  [MobileAppController::class, 'branches'])->name('api.app.branches');
+    Route::get('/categories',[MobileAppController::class, 'categories'])->name('api.app.categories');
+    Route::get('/incidents', [MobileAppController::class, 'history'])->name('api.app.incidents');
+    Route::post('/incidents',[MobileAppController::class, 'store'])->name('api.app.incidents.store');
 });
 
 Route::get('/switch-role/{role}', [\App\Http\Controllers\RoleSwitchController::class, 'switchRole'])->name('switch-role');
